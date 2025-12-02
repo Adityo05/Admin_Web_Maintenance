@@ -1,0 +1,132 @@
+@extends('layouts.app')
+
+@section('title', 'Tambah Karyawan')
+
+@section('content')
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
+        <div style="background: linear-gradient(135deg, #0A9C5D 0%, #022415 100%); padding: 20px; border-radius: 12px 12px 0 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <h2 style="color: white; font-size: 20px; font-weight: bold; margin: 0;">Tambah Data Karyawan</h2>
+                </div>
+                <a href="{{ route('karyawan.index') }}" style="color: white; text-decoration: none;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        
+        <form action="{{ route('karyawan.store') }}" method="POST" style="padding: 24px;">
+            @csrf
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div class="form-group">
+                    <label for="full_name" class="form-label">Nama Lengkap *</label>
+                    <div class="form-input-group">
+                        <svg class="form-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <input type="text" id="full_name" name="full_name" class="form-input" required>
+                    </div>
+                    @error('full_name')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label">Email *</label>
+                    <div class="form-input-group">
+                        <svg class="form-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        <input type="email" id="email" name="email" class="form-input" required>
+                    </div>
+                    @error('email')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div class="form-group">
+                    <label for="password" class="form-label">Password *</label>
+                    <div class="form-input-group">
+                        <svg class="form-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <input type="password" id="password" name="password" class="form-input" required minlength="6">
+                    </div>
+                    @error('password')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone" class="form-label">Nomor Telepon</label>
+                    <div class="form-input-group">
+                        <svg class="form-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                        <input type="text" id="phone" name="phone" class="form-input">
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <div class="form-group">
+                    <label for="jabatan" class="form-label">Jabatan *</label>
+                    <select id="jabatan" name="jabatan" class="form-input" required>
+                        <option value="">Pilih Jabatan</option>
+                        @foreach($jabatanList as $jabatan)
+                            <option value="{{ $jabatan }}">{{ $jabatan }}</option>
+                        @endforeach
+                    </select>
+                    @error('jabatan')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
+                
+                <div class="form-group">
+                    <label for="department" class="form-label">Department</label>
+                    <input type="text" id="department" name="department" class="form-input" value="Maintenance" readonly>
+                </div>
+            </div>
+            
+            <div style="margin: 24px 0; border-top: 2px solid #e0e0e0;"></div>
+            
+            <div class="form-group">
+                <label class="form-label">Mesin yang Dikerjakan (Multi-select)</label>
+                <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px;">
+                    @foreach($assets as $asset)
+                    <label style="display: flex; align-items: center; gap: 8px; padding: 8px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
+                        <input type="checkbox" name="assets[]" value="{{ $asset->id }}" style="width: 18px; height: 18px; cursor: pointer;">
+                        <span>{{ $asset->nama_assets }} @if($asset->kode_assets)({{ $asset->kode_assets }})@endif</span>
+                    </label>
+                    @endforeach
+                    @if($assets->isEmpty())
+                    <div style="padding: 20px; text-align: center; color: #999;">
+                        Tidak ada mesin tersedia. Tambahkan mesin terlebih dahulu di halaman Assets.
+                    </div>
+                    @endif
+                </div>
+            </div>
+            
+            <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
+                <a href="{{ route('karyawan.index') }}" class="btn btn-secondary" style="text-decoration: none;">Batal</a>
+                <button type="submit" class="btn btn-primary">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
+
