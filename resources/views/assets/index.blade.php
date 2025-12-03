@@ -60,7 +60,7 @@
 
 <!-- Table -->
 <div class="table-container">
-    <div style="overflow-x: auto;">
+    <div class="table-scroll-wrapper">
         <table class="table">
             <thead>
                 <tr>
@@ -103,43 +103,49 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($flatData as $row)
-                <tr>
-                    <td>{{ $row['kode_assets'] ?? '-' }}</td>
-                    <td>{{ $row['nama_aset'] ?? '-' }}</td>
-                    <td>{{ $row['jenis_aset'] ?? '-' }}</td>
-                    <td>
-                        <span class="badge 
-                            @if(strtolower($row['status'] ?? '') == 'aktif') badge-success
-                            @elseif(strtolower($row['status'] ?? '') == 'breakdown') badge-danger
-                            @elseif(strtolower($row['status'] ?? '') == 'perlu maintenance') badge-warning
-                            @else badge-secondary
-                            @endif">
-                            {{ $row['status'] ?? '-' }}
-                        </span>
+                @forelse($processedData as $row)
+                <tr style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">
+                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">{{ !empty($row['show_asset_name']) ? ($row['kode_assets'] ?? '-') : '' }}</td>
+                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">{{ !empty($row['show_asset_name']) ? ($row['nama_aset'] ?? '-') : '' }}</td>
+                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">{{ !empty($row['show_asset_name']) ? ($row['jenis_aset'] ?? '-') : '' }}</td>
+                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">
+                        @if(!empty($row['show_asset_name']))
+                            <span class="badge 
+                                @if(strtolower($row['status'] ?? '') == 'aktif') badge-success
+                                @elseif(strtolower($row['status'] ?? '') == 'breakdown') badge-danger
+                                @elseif(strtolower($row['status'] ?? '') == 'perlu maintenance') badge-warning
+                                @else badge-secondary
+                                @endif">
+                                {{ $row['status'] ?? '-' }}
+                            </span>
+                        @endif
                     </td>
-                    <td>
-                        <span class="badge 
-                            @if(strtolower($row['mt_priority'] ?? '') == 'high') badge-danger
-                            @elseif(strtolower($row['mt_priority'] ?? '') == 'medium') badge-warning
-                            @elseif(strtolower($row['mt_priority'] ?? '') == 'low') badge-info
-                            @else badge-secondary
-                            @endif">
-                            {{ $row['mt_priority'] ?? '-' }}
-                        </span>
+                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">
+                        @if(!empty($row['show_asset_name']))
+                            <span class="badge 
+                                @if(strtolower($row['mt_priority'] ?? '') == 'high') badge-danger
+                                @elseif(strtolower($row['mt_priority'] ?? '') == 'medium') badge-warning
+                                @elseif(strtolower($row['mt_priority'] ?? '') == 'low') badge-info
+                                @else badge-secondary
+                                @endif">
+                                {{ $row['mt_priority'] ?? '-' }}
+                            </span>
+                        @endif
                     </td>
-                    <td>{{ $row['bagian_aset'] ?? '-' }}</td>
-                    <td>{{ $row['komponen_aset'] ?? '-' }}</td>
-                    <td>{{ $row['produk_yang_digunakan'] ?? '-' }}</td>
-                    <td>
-                        <div style="display: flex; gap: 8px;">
-                            <a href="{{ route('assets.edit', $row['id']) }}" class="btn btn-sm" style="background-color: #0A9C5D; color: white; text-decoration: none; padding: 4px 12px; font-size: 12px;">Edit</a>
-                            <form action="{{ route('assets.destroy', $row['id']) }}" method="POST" style="display: inline;" onsubmit="return confirmDelete('Apakah Anda yakin ingin menghapus asset ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" style="padding: 4px 12px; font-size: 12px;">Hapus</button>
-                            </form>
-                        </div>
+                    <td style="{{ !empty($row['bagian_aset_has_border']) ? 'border-top: 1px solid #d0d0d0;' : '' }}">{{ $row['bagian_aset'] ?? '-' }}</td>
+                    <td style="{{ !empty($row['komponen_aset_has_border']) ? 'border-top: 1px solid #d0d0d0;' : '' }}">{{ $row['komponen_aset'] ?? '-' }}</td>
+                    <td style="{{ !empty($row['produk_has_border']) ? 'border-top: 1px solid #d0d0d0;' : '' }}">{{ $row['produk_yang_digunakan'] ?? '-' }}</td>
+                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">
+                        @if(!empty($row['show_aksi']))
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <a href="{{ route('assets.edit', $row['id']) }}" class="btn btn-sm" style="background-color: #0A9C5D; color: white; text-decoration: none; padding: 6px 12px; font-size: 12px; height: 32px; display: inline-flex; align-items: center; box-sizing: border-box;">Edit</a>
+                                <form action="{{ route('assets.destroy', $row['id']) }}" method="POST" style="display: inline; margin: 0;" onsubmit="return confirmDelete('Apakah Anda yakin ingin menghapus asset ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 6px 12px; font-size: 12px; height: 32px; display: inline-flex; align-items: center; box-sizing: border-box;">Hapus</button>
+                                </form>
+                            </div>
+                        @endif
                     </td>
                 </tr>
                 @empty

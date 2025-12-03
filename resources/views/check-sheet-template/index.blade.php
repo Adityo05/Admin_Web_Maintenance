@@ -3,23 +3,16 @@
 @section('title', 'Cek Sheet Schedule')
 
 @section('content')
-<div class="page-header">
-    <h1>Cek Sheet Schedule</h1>
-    <div style="display: flex; gap: 10px; align-items: center;">
-        <button onclick="location.reload()" class="btn btn-outline" style="display: flex; align-items: center; gap: 8px;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<div style="margin-bottom: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1 style="font-size: 24px; font-weight: bold; color: #022415;">Cek Sheet Schedule</h1>
+        <button class="btn-icon" onclick="location.reload()" title="Refresh Data">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="23 4 23 10 17 10"></polyline>
                 <polyline points="1 20 1 14 7 14"></polyline>
                 <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
             </svg>
         </button>
-        <a href="{{ route('check-sheet-template.create') }}" class="btn btn-primary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Tambah
-        </a>
     </div>
 </div>
 
@@ -31,36 +24,44 @@
     <div class="alert alert-error">{{ session('error') }}</div>
 @endif
 
-<div class="filter-section" style="margin-bottom: 20px;">
-    <form method="GET" action="{{ route('check-sheet-template.index') }}">
-        <div style="display: flex; gap: 15px; align-items: center;">
-            <div style="position: relative; flex: 1; max-width: 500px;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%);">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                </svg>
-                <input type="text" 
-                       name="search" 
-                       placeholder="Cari infrastruktur, bagian, periode, jenis pekerjaan..." 
-                       value="{{ $searchQuery }}" 
-                       class="form-input" 
-                       style="padding-left: 40px;">
-            </div>
-            @if($searchQuery)
-                <a href="{{ route('check-sheet-template.index') }}" class="btn btn-outline">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                    Clear
-                </a>
-            @endif
+<!-- Search and Filter -->
+<form method="GET" action="{{ route('check-sheet-template.index') }}" style="margin-bottom: 20px;">
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <div style="flex: 1; position: relative;">
+            <input 
+                type="text" 
+                name="search" 
+                value="{{ $searchQuery }}" 
+                placeholder="Cari infrastruktur, bagian, periode, jenis pekerjaan..." 
+                class="table-search"
+                style="padding-left: 40px;"
+            >
+            <svg style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: #0A9C5D;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
         </div>
-    </form>
-</div>
+        @if($searchQuery)
+            <a href="{{ route('check-sheet-template.index') }}" class="btn btn-secondary" style="width: auto; padding: 8px 20px; height: auto;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                Clear
+            </a>
+        @endif
+        <a href="{{ route('check-sheet-template.create') }}" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Tambah
+        </a>
+    </div>
+</form>
 
 <div class="card">
-    <div class="table-scroll">
+    <div class="table-scroll-wrapper">
         <table class="table-checksheet">
             <thead>
                 <tr>
@@ -75,17 +76,19 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($templates as $index => $template)
+                @forelse($processedTemplates as $index => $template)
                     <tr>
-                        <td style="text-align: center;">{{ $index + 1 }}</td>
-                        <td>
-                            @if($template->komponenAsset && $template->komponenAsset->asset)
-                                <strong style="color: #022415;">{{ $template->komponenAsset->asset->nama_assets }}</strong>
-                            @else
-                                <span style="color: #999;">-</span>
+                        <td style="{{ !empty($template->no_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}; text-align: center;">{{ $index + 1 }}</td>
+                        <td style="{{ !empty($template->has_same_asset_below) ? 'border-bottom: none;' : '' }}">
+                            @if(!empty($template->show_asset_name))
+                                @if($template->komponenAsset && $template->komponenAsset->asset)
+                                    <strong style="color: #022415;">{{ $template->komponenAsset->asset->nama_assets }}</strong>
+                                @else
+                                    <span style="color: #999;">-</span>
+                                @endif
                             @endif
                         </td>
-                        <td>
+                        <td style="{{ !empty($template->bagian_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
                             @if($template->komponenAsset)
                                 <div style="color: #444;">
                                     @if($template->komponenAsset->bagianMesin)
@@ -97,7 +100,7 @@
                                 <span style="color: #999;">-</span>
                             @endif
                         </td>
-                        <td>
+                        <td style="{{ !empty($template->periode_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
                             @if($template->periode && $template->interval_periode)
                                 <span class="badge badge-info" style="white-space: nowrap; background: #2196F3; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
                                     Per {{ $template->interval_periode }} 
@@ -115,22 +118,22 @@
                                 <span style="color: #999;">-</span>
                             @endif
                         </td>
-                        <td>
+                        <td style="{{ !empty($template->jenis_pekerjaan_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
                             <div style="color: #444; line-height: 1.4;">
                                 {{ $template->jenis_pekerjaan }}
                             </div>
                         </td>
-                        <td>
+                        <td style="{{ !empty($template->std_prwtn_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
                             <div style="color: #666; font-size: 13px; line-height: 1.4;">
                                 {{ $template->std_prwtn }}
                             </div>
                         </td>
-                        <td>
+                        <td style="{{ !empty($template->alat_bahan_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
                             <div style="color: #666; font-size: 13px; line-height: 1.4;">
                                 {{ $template->alat_bahan }}
                             </div>
                         </td>
-                        <td>
+                        <td style="{{ !empty($template->aksi_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
                             <div style="display: flex; gap: 8px; justify-content: center;">
                                 <a href="{{ route('check-sheet-template.edit', $template->id) }}" 
                                    class="btn-icon btn-icon-edit" 
@@ -201,11 +204,10 @@
 </div>
 
 <style>
-.table-scroll {
+.table-scroll-wrapper {
     overflow-x: auto;
     overflow-y: visible;
     max-width: 100%;
-    border: 1px solid #e0e0e0;
     border-radius: 8px;
 }
 
@@ -222,11 +224,11 @@
     color: white;
     padding: 14px 16px;
     text-align: left;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-right: 1px solid rgba(255,255,255,0.2);
+    border-right: 1px solid rgba(255,255,255,0.3);
     border-bottom: 2px solid #088c51;
     white-space: nowrap;
 }
@@ -237,9 +239,9 @@
 
 .table-checksheet tbody td {
     padding: 14px 16px;
-    border-right: 1px solid #e0e0e0;
-    border-bottom: 1px solid #e0e0e0;
-    font-size: 13px;
+    border-right: 1px solid #d0d0d0;
+    border-bottom: 1px solid #d0d0d0;
+    font-size: 12px;
     background: white;
     vertical-align: top;
 }
@@ -257,9 +259,9 @@
 }
 
 .btn-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
     border: none;
     cursor: pointer;
     display: inline-flex;
@@ -267,6 +269,7 @@
     justify-content: center;
     transition: all 0.2s;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-shrink: 0;
 }
 
 .btn-icon-edit {

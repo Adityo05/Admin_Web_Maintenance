@@ -25,6 +25,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('karyawan', KaryawanController::class);
     
     // Maintenance Template
+    Route::get('maintenance-template/bagian-mesin/{assetId}', [MaintenanceTemplateController::class, 'getBagianMesinByAsset'])->name('maintenance-template.get-bagian-mesin');
+    Route::post('maintenance-template/update-schedule', [MaintenanceTemplateController::class, 'updateSchedule'])->name('maintenance-template.update-schedule');
+    Route::post('maintenance-template/update-actual', [MaintenanceTemplateController::class, 'updateActual'])->name('maintenance-template.update-actual');
     Route::resource('maintenance-template', MaintenanceTemplateController::class);
     
     // Check Sheet Template

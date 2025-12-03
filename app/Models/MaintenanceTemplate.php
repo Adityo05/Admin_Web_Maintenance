@@ -14,28 +14,26 @@ class MaintenanceTemplate extends Model
 
     protected $fillable = [
         'id',
-        'assets_id',
-        'nama_template',
-        'deskripsi',
-        'interval_hari',
+        'bg_mesin_id',
         'periode',
+        'interval_periode',
         'start_date',
         'created_at',
         'updated_at',
     ];
 
     protected $casts = [
-        'interval_hari' => 'integer',
+        'interval_periode' => 'integer',
         'start_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
     /**
-     * Relasi ke Asset
+     * Relasi ke BagianMesin
      */
-    public function asset(): BelongsTo
+    public function bagianMesin(): BelongsTo
     {
-        return $this->belongsTo(Asset::class, 'assets_id', 'id');
+        return $this->belongsTo(BagianMesin::class, 'bg_mesin_id', 'id');
     }
 }
