@@ -33,7 +33,60 @@ class CheckSheetTemplateController extends Controller
             // Get all templates (no pagination for calendar view)
             $templates = $query->orderBy('created_at', 'desc')->get();
 
-            return view('check-sheet-template.index', compact('templates', 'searchQuery'));
+            // Tandai baris yang memiliki nama infrastruktur yang sama untuk menghilangkan border
+            $processedTemplates = [];
+            $totalRows = $templates->count();
+            
+            for ($i = 0; $i < $totalRows; $i++) {
+                $currentTemplate = $templates[$i];
+                $currentAssetName = $currentTemplate->komponenAsset && $currentTemplate->komponenAsset->asset 
+                    ? $currentTemplate->komponenAsset->asset->nama_assets 
+                    : 'Unknown';
+                
+                // Cek baris sebelumnya
+                $prevAssetName = null;
+                $prevTemplate = null;
+                if ($i > 0) {
+                    $prevTemplate = $templates[$i - 1];
+                    $prevAssetName = $prevTemplate->komponenAsset && $prevTemplate->komponenAsset->asset 
+                        ? $prevTemplate->komponenAsset->asset->nama_assets 
+                        : 'Unknown';
+                }
+                
+                // Cek baris berikutnya
+                $nextAssetName = null;
+                if ($i < $totalRows - 1) {
+                    $nextTemplate = $templates[$i + 1];
+                    $nextAssetName = $nextTemplate->komponenAsset && $nextTemplate->komponenAsset->asset 
+                        ? $nextTemplate->komponenAsset->asset->nama_assets 
+                        : 'Unknown';
+                }
+                
+                // Tentukan apakah ini baris pertama dalam grup
+                $isFirstInGroup = ($prevAssetName !== $currentAssetName);
+                
+                // Tentukan apakah ada baris dengan nama yang sama di bawah
+                $hasSameAssetBelow = ($nextAssetName === $currentAssetName);
+                $hasSameAssetAbove = ($prevAssetName === $currentAssetName);
+                
+                // Tambahkan flag ke template
+                $currentTemplate->has_same_asset_below = $hasSameAssetBelow;
+                $currentTemplate->show_asset_name = $isFirstInGroup; // Hanya tampilkan nama di baris pertama
+                
+                // Untuk semua kolom kecuali nama infrastruktur - selalu punya border untuk setiap baris baru
+                // (tidak peduli apakah nama infrastruktur sama atau tidak)
+                $currentTemplate->bagian_has_border = ($i > 0); // Selalu punya border jika bukan baris pertama
+                $currentTemplate->periode_has_border = ($i > 0);
+                $currentTemplate->jenis_pekerjaan_has_border = ($i > 0);
+                $currentTemplate->std_prwtn_has_border = ($i > 0);
+                $currentTemplate->alat_bahan_has_border = ($i > 0);
+                $currentTemplate->no_has_border = ($i > 0); // Kolom nomor juga perlu border
+                $currentTemplate->aksi_has_border = ($i > 0); // Kolom aksi juga perlu border
+                
+                $processedTemplates[] = $currentTemplate;
+            }
+
+            return view('check-sheet-template.index', compact('processedTemplates', 'searchQuery'));
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memuat data: ' . $e->getMessage());

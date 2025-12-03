@@ -131,6 +131,53 @@ class AssetController extends Controller
                 return $sortDirection === 'asc' ? $result : -$result;
             });
 
+            // Tandai baris yang memiliki nama aset yang sama untuk menghilangkan border
+            $processedData = [];
+            $totalRows = count($flatData);
+            
+            for ($i = 0; $i < $totalRows; $i++) {
+                $currentRow = $flatData[$i];
+                $currentKey = $currentRow['nama_aset'] . '|' . $currentRow['kode_assets'] . '|' . $currentRow['id'];
+                
+                // Cek baris sebelumnya
+                $prevKey = null;
+                $prevRow = null;
+                if ($i > 0) {
+                    $prevRow = $flatData[$i - 1];
+                    $prevKey = $prevRow['nama_aset'] . '|' . $prevRow['kode_assets'] . '|' . $prevRow['id'];
+                }
+                
+                // Cek baris berikutnya
+                $nextKey = null;
+                $nextRow = null;
+                if ($i < $totalRows - 1) {
+                    $nextRow = $flatData[$i + 1];
+                    $nextKey = $nextRow['nama_aset'] . '|' . $nextRow['kode_assets'] . '|' . $nextRow['id'];
+                }
+                
+                // Tentukan apakah ini baris pertama, tengah, atau terakhir dalam grup
+                $isFirstInGroup = ($prevKey !== $currentKey);
+                $isLastInGroup = ($nextKey !== $currentKey);
+                $hasSameAssetBelow = ($nextKey === $currentKey);
+                $hasSameAssetAbove = ($prevKey === $currentKey);
+                
+                // Cek apakah kolom berbeda dengan baris sebelumnya/berikutnya dalam grup yang sama
+                $currentRow['is_first_in_group'] = $isFirstInGroup;
+                $currentRow['is_last_in_group'] = $isLastInGroup;
+                $currentRow['has_same_asset_below'] = $hasSameAssetBelow;
+                $currentRow['show_asset_name'] = $isFirstInGroup; // Hanya tampilkan nama di baris pertama
+                $currentRow['show_aksi'] = $isFirstInGroup; // Hanya tampilkan aksi di baris pertama (karena aksi mempengaruhi aset secara keseluruhan)
+                
+                // Untuk kolom bagian aset, komponen aset, dan produk - selalu punya border untuk setiap baris baru
+                // (tidak peduli apakah nama aset sama atau tidak, dan tidak peduli apakah nilainya sama atau berbeda)
+                $currentRow['bagian_aset_has_border'] = ($i > 0); // Selalu punya border jika bukan baris pertama
+                $currentRow['komponen_aset_has_border'] = ($i > 0);
+                $currentRow['produk_has_border'] = ($i > 0);
+                // Kolom aksi digabung seperti kolom nama aset, jadi tidak perlu border
+                
+                $processedData[] = $currentRow;
+            }
+
             // Get unique jenis aset untuk filter dropdown
             $jenisAsetList = Asset::select('jenis_assets')
                 ->distinct()
@@ -138,7 +185,7 @@ class AssetController extends Controller
                 ->pluck('jenis_assets')
                 ->toArray();
 
-            return view('assets.index', compact('flatData', 'searchQuery', 'sortColumn', 'sortDirection', 'filterJenis', 'jenisAsetList'));
+            return view('assets.index', compact('processedData', 'searchQuery', 'sortColumn', 'sortDirection', 'filterJenis', 'jenisAsetList'));
 
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal memuat data: ' . $e->getMessage());

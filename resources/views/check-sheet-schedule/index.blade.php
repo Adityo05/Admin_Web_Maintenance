@@ -52,7 +52,8 @@
 
 <!-- Table -->
 <div class="table-container">
-    <table class="table">
+    <div class="table-scroll-wrapper">
+        <table class="table">
         <thead>
             <tr>
                 <th>No</th>
@@ -113,6 +114,7 @@
             @endforelse
         </tbody>
     </table>
+    </div>
 </div>
 
 <!-- Pagination -->

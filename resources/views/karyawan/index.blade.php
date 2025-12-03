@@ -60,7 +60,7 @@
 
 <!-- Table -->
 <div class="table-container">
-    <div style="overflow-x: auto;">
+    <div class="table-scroll-wrapper">
         <table class="table">
             <thead>
                 <tr style="background: linear-gradient(135deg, #0A9C5D 0%, #088A52 100%);">
@@ -85,12 +85,12 @@
                     <td>{{ $row['email'] }}</td>
                     <td>••••••••</td>
                     <td>
-                        <div style="display: flex; gap: 8px;">
-                            <a href="{{ route('karyawan.edit', $row['id']) }}" class="btn btn-sm" style="background-color: #0A9C5D; color: white; text-decoration: none; padding: 4px 12px; font-size: 12px;">Edit</a>
-                            <form action="{{ route('karyawan.destroy', $row['id']) }}" method="POST" style="display: inline;" onsubmit="return confirmDelete('Apakah Anda yakin ingin menghapus karyawan ini?')">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <a href="{{ route('karyawan.edit', $row['id']) }}" class="btn btn-sm" style="background-color: #0A9C5D; color: white; text-decoration: none; padding: 6px 12px; font-size: 12px; height: 32px; display: inline-flex; align-items: center; box-sizing: border-box;">Edit</a>
+                            <form action="{{ route('karyawan.destroy', $row['id']) }}" method="POST" style="display: inline; margin: 0;" onsubmit="return confirmDelete('Apakah Anda yakin ingin menghapus karyawan ini?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" style="padding: 4px 12px; font-size: 12px;">Hapus</button>
+                                <button type="submit" class="btn btn-sm btn-danger" style="padding: 6px 12px; font-size: 12px; height: 32px; display: inline-flex; align-items: center; box-sizing: border-box;">Hapus</button>
                             </form>
                         </div>
                     </td>
