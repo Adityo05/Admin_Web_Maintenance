@@ -17,7 +17,8 @@
             <span class="header-title">{{ $title }}</span>
         </div>
         <div class="header-center">
-            <span class="company-name">PT. NEW KALBAR PROCESSORS</span>
+            <img src="{{ asset('images/NKP.png') }}" alt="NKP Logo" style="width:32px; height:32px; object-fit:contain; vertical-align:middle; margin-right:10px;">
+            <span class="company-name" style="font-size:18px; font-weight:600; color:white; vertical-align:middle;">PT. NEW KALBAR PROCESSORS</span>
         </div>
         <div class="header-right">
             <div class="avatar">
