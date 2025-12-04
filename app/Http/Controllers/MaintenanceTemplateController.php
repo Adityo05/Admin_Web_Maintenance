@@ -34,8 +34,8 @@ class MaintenanceTemplateController extends Controller
             // Get all templates (no pagination for calendar view)
             $templates = $query->orderBy('created_at', 'desc')->get();
 
-            // Get schedules untuk tahun ini
-            $currentYear = date('Y');
+            // Get schedules untuk tahun yang dipilih (default tahun ini)
+            $currentYear = $request->get('year', date('Y'));
             $schedules = MaintenanceSchedule::whereYear('tgl_jadwal', $currentYear)
                 ->with('template')
                 ->get();
@@ -321,186 +321,89 @@ class MaintenanceTemplateController extends Controller
     }
 
     /**
-     * Update schedule (PLAN row)
+     * Update plan date (tgl_jadwal)
      */
-    public function updateSchedule(Request $request)
+    public function updatePlanDate(Request $request)
     {
         $request->validate([
-            'template_id' => 'required|exists:mt_template,id',
-            'week_number' => 'required|integer|min:1|max:48',
+            'schedule_id' => 'required|exists:mt_schedule,id',
             'date' => 'required|date',
-            'regenerate' => 'nullable|boolean',
         ]);
 
         try {
-            DB::beginTransaction();
-
-            $template = MaintenanceTemplate::findOrFail($request->template_id);
-            $date = Carbon::parse($request->date);
-            $year = $date->year;
-            $regenerate = $request->regenerate ?? false;
-
-            // Hapus semua schedule plan lama untuk template ini di tahun yang sama
-            MaintenanceSchedule::where('template_id', $template->id)
-                ->whereYear('tgl_jadwal', $year)
-                ->whereNull('tgl_selesai') // Hanya plan yang belum selesai
-                ->delete();
-
-            if ($regenerate) {
-                // Generate ulang semua schedule berdasarkan interval
-                $startDate = $date->copy();
-                $interval = $template->interval_periode;
-                $periode = $template->periode;
-                
-                $schedules = [];
-                $currentDate = $startDate->copy();
-                
-                while ($currentDate->year == $year) {
-                    $schedules[] = [
-                        'id' => Str::uuid()->toString(),
-                        'template_id' => $template->id,
-                        'assets_id' => $template->bagianMesin->asset->id ?? null,
-                        'tgl_jadwal' => $currentDate->format('Y-m-d'),
-                        'status' => 'Perlu Maintenance',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                    
-                    switch ($periode) {
-                        case 'Hari':
-                            $currentDate->addDays($interval);
-                            break;
-                        case 'Minggu':
-                            $currentDate->addWeeks($interval);
-                            break;
-                        case 'Bulan':
-                            $currentDate->addMonths($interval);
-                            break;
-                    }
-                }
-                
-                if (!empty($schedules)) {
-                    DB::table('mt_schedule')->insert($schedules);
-                }
-            } else {
-                // Buat schedule baru dengan tanggal yang diinput
-                MaintenanceSchedule::create([
-                    'id' => Str::uuid()->toString(),
-                    'template_id' => $template->id,
-                    'assets_id' => $template->bagianMesin->asset->id ?? null,
-                    'tgl_jadwal' => $date->format('Y-m-d'),
-                    'status' => 'Perlu Maintenance',
-                ]);
-            }
-
-            DB::commit();
+            $schedule = MaintenanceSchedule::findOrFail($request->schedule_id);
+            $schedule->update([
+                'tgl_jadwal' => $request->date,
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => $regenerate ? 'Schedule berhasil di-regenerate' : 'Schedule berhasil ditambahkan',
+                'message' => 'Tanggal plan berhasil diperbarui',
             ]);
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal update schedule: ' . $e->getMessage(),
+                'message' => 'Gagal mengubah tanggal plan: ' . $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * Update actual (ACTUAL row)
+     * Set/Edit actual date (tgl_selesai)
      */
-    public function updateActual(Request $request)
+    public function setActualDate(Request $request)
     {
         $request->validate([
-            'template_id' => 'required|exists:mt_template,id',
-            'week_number' => 'required|integer|min:1|max:48',
+            'schedule_id' => 'required|exists:mt_schedule,id',
             'date' => 'required|date',
         ]);
 
         try {
-            DB::beginTransaction();
-
-            $template = MaintenanceTemplate::findOrFail($request->template_id);
-            $actualDate = Carbon::parse($request->date);
-            $year = $actualDate->year;
-            $weekNumber = (int)$request->week_number;
-
-            // Calculate week range untuk mencari plan di week yang sama
-            $weekRange = $this->calculateDateFromWeek($weekNumber, $year);
-            $weekStart = Carbon::create($year, $weekRange['month'], $weekRange['startDay']);
-            $weekEnd = Carbon::create($year, $weekRange['month'], $weekRange['endDay']);
-
-            // Priority 1: Cari schedule plan di week yang sama
-            $schedule = MaintenanceSchedule::where('template_id', $template->id)
-                ->whereYear('tgl_jadwal', $year)
-                ->whereBetween('tgl_jadwal', [$weekStart->format('Y-m-d'), $weekEnd->format('Y-m-d')])
-                ->whereNull('tgl_selesai')
-                ->first();
-
-            // Priority 2: Cari schedule plan terdekat (±2 bulan dari actual date)
-            if (!$schedule) {
-                $searchStart = $actualDate->copy()->subMonths(2);
-                $searchEnd = $actualDate->copy()->addMonths(2);
-                
-                $schedule = MaintenanceSchedule::where('template_id', $template->id)
-                    ->whereYear('tgl_jadwal', $year)
-                    ->whereBetween('tgl_jadwal', [$searchStart->format('Y-m-d'), $searchEnd->format('Y-m-d')])
-                    ->whereNull('tgl_selesai')
-                    ->get()
-                    ->sortBy(function($s) use ($actualDate) {
-                        return abs(Carbon::parse($s->tgl_jadwal)->diffInDays($actualDate));
-                    })
-                    ->first();
-            }
-
-            // Priority 3: Buat schedule baru untuk actual (jika tidak ada plan yang relevan)
-            if (!$schedule) {
-                $schedule = MaintenanceSchedule::create([
-                    'id' => Str::uuid()->toString(),
-                    'template_id' => $template->id,
-                    'assets_id' => $template->bagianMesin->asset->id ?? null,
-                    'tgl_jadwal' => $actualDate->format('Y-m-d'),
-                    'tgl_selesai' => $actualDate->format('Y-m-d'),
-                    'status' => 'Selesai',
-                ]);
-            } else {
-                // Update existing schedule dengan actual date
-                // Jika sudah ada actual di week yang sama, replace
-                $existingActual = MaintenanceSchedule::where('template_id', $template->id)
-                    ->whereYear('tgl_selesai', $year)
-                    ->whereNotNull('tgl_selesai')
-                    ->where(function($q) use ($weekStart, $weekEnd) {
-                        $q->whereBetween('tgl_selesai', [$weekStart->format('Y-m-d'), $weekEnd->format('Y-m-d')]);
-                    })
-                    ->first();
-                
-                if ($existingActual && $existingActual->id !== $schedule->id) {
-                    // Hapus actual lama di week yang sama
-                    $existingActual->delete();
-                }
-                
-                // Update schedule dengan actual date
-                $schedule->update([
-                    'tgl_selesai' => $actualDate->format('Y-m-d'),
-                    'status' => 'Selesai',
-                ]);
-            }
-
-            DB::commit();
+            $schedule = MaintenanceSchedule::findOrFail($request->schedule_id);
+            $schedule->update([
+                'tgl_selesai' => $request->date,
+                'status' => 'Selesai',
+            ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Actual date berhasil diupdate',
+                'message' => 'Tanggal actual berhasil disimpan',
             ]);
 
         } catch (\Exception $e) {
-            DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal update actual: ' . $e->getMessage(),
+                'message' => 'Gagal menyimpan tanggal actual: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete actual date (set tgl_selesai to null)
+     */
+    public function deleteActualDate(Request $request)
+    {
+        $request->validate([
+            'schedule_id' => 'required|exists:mt_schedule,id',
+        ]);
+
+        try {
+            $schedule = MaintenanceSchedule::findOrFail($request->schedule_id);
+            $schedule->update([
+                'tgl_selesai' => null,
+                'status' => 'Perlu Maintenance',
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Tanggal actual berhasil dihapus - status kembali ke Perlu Maintenance',
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus tanggal actual: ' . $e->getMessage(),
             ], 500);
         }
     }

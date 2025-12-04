@@ -5,7 +5,7 @@
 @section('content')
 <div style="margin-bottom: 20px;">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h1 style="font-size: 24px; font-weight: bold; color: #022415;">Maintenance Schedule - {{ date('Y') }}</h1>
+        <h1 style="font-size: 24px; font-weight: bold; color: #022415;">Maintenance Schedule - <span id="currentYear">{{ request('year', date('Y')) }}</span></h1>
         <button class="btn-icon" onclick="location.reload()" title="Refresh Data">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="23 4 23 10 17 10"></polyline>
@@ -38,7 +38,7 @@
             <option value="mixer">Mixer</option>
             <option value="conveyor">Conveyor</option>
         </select>
-        <a href="{{ route('maintenance-template.create') }}" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <a href="{{ route('maintenance-template.create') }}" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto; display: flex; align-items: center; gap: 8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -54,12 +54,29 @@
                 <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
         </button>
-        <span id="currentYear" style="font-weight: bold; min-width: 60px; text-align: center;">{{ date('Y') }}</span>
+        <span id="currentYearDisplay" style="font-weight: bold; min-width: 60px; text-align: center;">{{ request('year', date('Y')) }}</span>
         <button onclick="changeYear(1)" class="btn btn-outline" style="padding: 8px 12px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
         </button>
+    </div>
+</div>
+
+<!-- Legend Keterangan Warna -->
+<div style="display: flex; gap: 24px; align-items: center; padding: 12px 20px; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px;">
+    <div style="font-weight: 600; color: #333; font-size: 14px;">Keterangan:</div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="width: 24px; height: 24px; background: #ffc107; border-radius: 4px; border: 1px solid #e0a800;"></div>
+        <span style="font-size: 13px; color: #666;">Plan (Belum Selesai)</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="width: 24px; height: 24px; background: #2196F3; border-radius: 4px; border: 1px solid #1976D2;"></div>
+        <span style="font-size: 13px; color: #666;">Plan (Sudah Selesai)</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="width: 24px; height: 24px; background: #4CAF50; border-radius: 4px; border: 1px solid #388E3C;"></div>
+        <span style="font-size: 13px; color: #666;">Actual (Terealisasi)</span>
     </div>
 </div>
 
@@ -70,9 +87,9 @@
                 <tr>
                     <th rowspan="2" style="min-width: 120px;">NAMA MESIN</th>
                     <th rowspan="2" style="min-width: 120px;">BAGIAN MESIN</th>
-                    <th rowspan="2" style="min-width: 150px;">LIFT TIME<br>MESIN (JAM)</th>
+                    <th rowspan="2" style="min-width: 150px;">LIFT TIME<br>MESIN / HARI</th>
                     <th rowspan="2" style="min-width: 80px;">AKSI</th>
-                    <th rowspan="2" style="min-width: 80px;">P/L</th>
+                    <th rowspan="2" style="min-width: 60px;">PVL</th>
                     @php
                         $currentYear = date('Y');
                         $weeksInYear = 48; // 12 bulan x 4 minggu
@@ -161,13 +178,22 @@
                                             }
                                         }
                                     }
+                                    
+                                    // Tentukan warna: Biru jika selesai, Kuning jika belum
+                                    $isCompleted = $scheduleInWeek && $scheduleInWeek->tgl_selesai && strtolower($scheduleInWeek->status) === 'selesai';
+                                    $cellClass = $scheduleInWeek ? ($isCompleted ? 'week-completed' : 'week-planned') : '';
                                 @endphp
-                                <td class="week-cell clickable-cell {{ $scheduleInWeek ? 'week-planned' : '' }}" 
+                                <td class="week-cell clickable-cell {{ $cellClass }}" 
                                     data-type="plan"
+                                    data-schedule-id="{{ $scheduleInWeek?->id ?? '' }}"
                                     data-template-id="{{ $template->id }}"
                                     data-week="{{ $weekNum }}"
-                                    data-current-date="{{ $scheduleInWeek ? \Carbon\Carbon::parse($scheduleInWeek->tgl_jadwal)->format('Y-m-d') : '' }}"
-                                    onclick="event.stopPropagation(); openScheduleModal(this); return false;">
+                                    data-asset-name="{{ $template->bagianMesin->asset->nama_assets ?? '' }}"
+                                    data-bagian-name="{{ $template->bagianMesin->nama_bagian ?? '' }}"
+                                    data-plan-date="{{ $scheduleInWeek ? \Carbon\Carbon::parse($scheduleInWeek->tgl_jadwal)->format('Y-m-d') : '' }}"
+                                    data-actual-date="{{ $scheduleInWeek && $scheduleInWeek->tgl_selesai ? \Carbon\Carbon::parse($scheduleInWeek->tgl_selesai)->format('Y-m-d') : '' }}"
+                                    data-is-completed="{{ $isCompleted ? '1' : '0' }}"
+                                    onclick="event.stopPropagation(); openPlanContextMenu(this); return false;">
                                     @if($scheduleInWeek)
                                         {{ $scheduleInWeek->tgl_jadwal ? \Carbon\Carbon::parse($scheduleInWeek->tgl_jadwal)->day : '' }}
                                     @endif
@@ -193,12 +219,15 @@
                                     }
                                     $actualHour = $actualHours[$weekNum] ?? null;
                                 @endphp
-                                <td class="week-cell week-actual clickable-cell" 
+                                <td class="week-cell week-actual clickable-cell {{ $actualScheduleInWeek ? 'week-actual-filled' : '' }}" 
                                     data-type="actual"
+                                    data-schedule-id="{{ $actualScheduleInWeek?->id ?? (isset($schedules[0]) ? $schedules[0]->id : '') }}"
                                     data-template-id="{{ $template->id }}"
                                     data-week="{{ $weekNum }}"
-                                    data-current-date="{{ $actualScheduleInWeek ? \Carbon\Carbon::parse($actualScheduleInWeek->tgl_selesai)->format('Y-m-d') : '' }}"
-                                    onclick="event.stopPropagation(); openScheduleModal(this); return false;">
+                                    data-asset-name="{{ $template->bagianMesin->asset->nama_assets ?? '' }}"
+                                    data-bagian-name="{{ $template->bagianMesin->nama_bagian ?? '' }}"
+                                    data-actual-date="{{ $actualScheduleInWeek ? \Carbon\Carbon::parse($actualScheduleInWeek->tgl_selesai)->format('Y-m-d') : '' }}"
+                                    onclick="event.stopPropagation(); openActualContextMenu(this); return false;">
                                     @if($actualScheduleInWeek)
                                         {{ \Carbon\Carbon::parse($actualScheduleInWeek->tgl_selesai)->day }}
                                     @elseif($actualHour)
@@ -210,15 +239,14 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="57" class="text-center" style="padding: 60px;">
+                        <td colspan="53" class="text-center" style="padding: 60px; border: none;">
                             <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" style="margin: 0 auto 20px; display: block;">
                                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                                 <line x1="16" y1="2" x2="16" y2="6"></line>
                                 <line x1="8" y1="2" x2="8" y2="6"></line>
                                 <line x1="3" y1="10" x2="21" y2="10"></line>
                             </svg>
-                            <p style="color: #999; font-size: 18px; margin-bottom: 20px;">Belum ada jadwal maintenance</p>
-                            <a href="{{ route('maintenance-template.create') }}" class="btn btn-primary">Tambah Jadwal Pertama</a>
+                            <p style="color: #999; font-size: 18px; margin-bottom: 0; font-weight: 500;">Tidak ada jadwal untuk tahun {{ request('year', date('Y')) }}</p>
                         </td>
                     </tr>
                 @endforelse
@@ -227,34 +255,70 @@
     </div>
 </div>
 
-<!-- Schedule Modal -->
-<div id="scheduleModal" class="modal-overlay">
+<!-- Plan Context Menu Modal -->
+<div id="planContextModal" class="modal-overlay">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 id="modalTitle">Update Schedule</h3>
-            <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
+            <h3 id="planModalTitle">Detail Maintenance</h3>
+            <button class="modal-close" onclick="closePlanContextModal()">&times;</button>
         </div>
-        <form id="scheduleForm" onsubmit="event.preventDefault(); submitSchedule();">
-            <input type="hidden" name="template_id" id="scheduleTemplateId">
-            <input type="hidden" name="week_number" id="scheduleWeek">
-            <input type="hidden" name="type" id="scheduleType">
+        <div class="modal-body">
+            <p id="planModalInfo" style="font-size: 12px; color: #666; margin-bottom: 16px;"></p>
+            <div id="planModalDetails"></div>
+        </div>
+        <div class="modal-footer" id="planModalActions">
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closePlanContextModal()">Tutup</button>
+        </div>
+    </div>
+</div>
+
+<!-- Actual Context Menu Modal -->
+<div id="actualContextModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Tanggal Actual</h3>
+            <button class="modal-close" onclick="closeActualContextModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="actualModalInfo" style="font-size: 12px; color: #666; margin-bottom: 8px;"></p>
+            <p id="actualModalDate" style="font-size: 11px; font-weight: 500; margin-bottom: 16px;"></p>
+            <div style="padding: 10px; background: rgba(33, 150, 243, 0.1); border-radius: 6px; border: 1px solid rgba(33, 150, 243, 0.3);">
+                <div style="display: flex; gap: 8px; align-items: flex-start;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <p style="font-size: 9px; color: #1976D2; margin: 0;">Tanggal actual dapat dipilih kapan saja, termasuk sebelum tanggal plan</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" id="actualModalActions">
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeActualContextModal()">Batal</button>
+        </div>
+    </div>
+</div>
+
+<!-- Date Picker Modal -->
+<div id="datePickerModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="datePickerTitle">Pilih Tanggal</h3>
+            <button class="modal-close" onclick="closeDatePickerModal()">&times;</button>
+        </div>
+        <form id="datePickerForm" onsubmit="event.preventDefault(); submitDatePicker();">
+            <input type="hidden" id="datePickerScheduleId">
+            <input type="hidden" id="datePickerType">
             
             <div class="modal-body">
                 <div class="form-group-modal">
-                    <label for="scheduleDate">Tanggal <span style="color: red;">*</span></label>
-                    <input type="date" name="date" id="scheduleDate" required>
-                </div>
-                
-                <div class="form-group-modal" id="regenerateGroup" style="display: none;">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="regenerate" value="1">
-                        <span>Regenerate semua schedule berdasarkan interval template</span>
-                    </label>
+                    <label for="pickedDate">Tanggal <span style="color: red;">*</span></label>
+                    <input type="date" id="pickedDate" required>
                 </div>
             </div>
             
             <div class="modal-footer">
-                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeScheduleModal()">Batal</button>
+                <button type="button" class="btn-modal btn-modal-cancel" onclick="closeDatePickerModal()">Batal</button>
                 <button type="submit" class="btn-modal btn-modal-submit">Simpan</button>
             </div>
         </form>
@@ -294,69 +358,93 @@
 }
 
 .maintenance-calendar-table thead th {
-    background: #0a9c5d;
+    background: linear-gradient(135deg, #0a9c5d 0%, #088a52 100%);
     color: white;
     padding: 12px 8px;
     text-align: center;
     font-size: 10px;
     font-weight: 600;
-    border-right: 1px solid rgba(255,255,255,0.3);
-    border-bottom: 2px solid #088c51;
+    border-right: 1px solid rgba(255,255,255,0.5);
+    border-bottom: 1px solid rgba(255,255,255,0.5);
     white-space: nowrap;
 }
 
 
 .month-header {
-    background: #0a9c5d !important;
+    background: linear-gradient(135deg, #0a9c5d 0%, #088a52 100%) !important;
     font-size: 10px;
     text-transform: uppercase;
 }
 
 .week-header {
-    background: #0d7a4a !important;
-    font-size: 10px;
+    background: linear-gradient(135deg, #0a9c5d 0%, #088a52 100%) !important;
+    font-size: 9px;
     min-width: 45px;
 }
 
 .maintenance-calendar-table tbody td {
-    padding: 10px 8px;
-    border: 1px solid #d0d0d0;
-    font-size: 12px;
+    padding: 8px 6px;
+    border-right: 0.5px solid #999;
+    border-bottom: 0.5px solid #999;
+    font-size: 10px;
 }
 
 .week-cell {
     text-align: center;
     min-width: 45px;
-    height: 35px;
+    height: 40px;
     vertical-align: middle;
+    font-size: 10px;
 }
 
 .week-planned {
-    background: #ffd700 !important;
+    background: #ffc107 !important;
     color: #000;
     font-weight: bold;
 }
 
+.week-completed {
+    background: #2196F3 !important;
+    color: white;
+    font-weight: bold;
+}
+
 .week-actual {
-    background: #f5f5f5;
+    background: transparent;
+}
+
+.week-actual-filled {
+    background: #4CAF50 !important;
+    color: white;
+    font-weight: bold;
 }
 
 .plan-label {
-    background: #fff8dc !important;
+    background: transparent !important;
     font-weight: bold;
     text-align: center;
-    font-size: 11px;
+    font-size: 10px;
+    color: #333;
 }
 
 .actual-label {
-    background: #f0f0f0 !important;
+    background: transparent !important;
     font-weight: bold;
     text-align: center;
-    font-size: 11px;
+    font-size: 10px;
+    color: #333;
 }
 
 .actual-row td {
     border-top: none !important;
+}
+
+.schedule-row:nth-child(even) td {
+    background: #f9f9f9;
+}
+
+.schedule-row:nth-child(odd) td {
+    background: white;
 }
 
 .action-cell {
@@ -396,18 +484,10 @@
 }
 
 .clickable-cell:hover {
-    background: rgba(10, 156, 93, 0.1) !important;
     transform: scale(1.05);
     z-index: 10;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-
-.clickable-cell.week-planned:hover {
-    background: rgba(255, 235, 59, 0.3) !important;
-}
-
-.clickable-cell.week-actual:hover {
-    background: rgba(10, 156, 93, 0.2) !important;
+    cursor: pointer;
 }
 
 /* Modal Styles */
@@ -594,11 +674,15 @@
 </style>
 
 <script>
+let currentYear = {{ request('year', date('Y')) }};
+
 function changeYear(delta) {
-    const yearSpan = document.getElementById('currentYear');
-    const currentYear = parseInt(yearSpan.textContent);
-    yearSpan.textContent = currentYear + delta;
-    // Here you would reload data for the new year
+    currentYear += delta;
+    document.getElementById('currentYear').textContent = currentYear;
+    document.getElementById('currentYearDisplay').textContent = currentYear;
+    
+    // Reload dengan parameter tahun
+    window.location.href = '{{ route('maintenance-template.index') }}?year=' + currentYear;
 }
 
 function editSchedule(id) {
@@ -643,151 +727,6 @@ document.getElementById('searchMesin')?.addEventListener('input', function(e) {
     });
 });
 
-// Schedule Modal Functions
-let currentCell = null;
-
-// Ensure modal is hidden on page load
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('scheduleModal');
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    if (modal) {
-        modal.classList.remove('show');
-    }
-    if (loadingOverlay) {
-        loadingOverlay.classList.remove('show');
-    }
-});
-
-function openScheduleModal(cell) {
-    // Prevent if cell is null or undefined
-    if (!cell) {
-        console.error('Cell is null or undefined');
-        return;
-    }
-    
-    // Prevent event bubbling
-    event?.stopPropagation();
-    event?.preventDefault();
-    
-    currentCell = cell;
-    const type = cell.dataset.type;
-    const templateId = cell.dataset.templateId;
-    const week = parseInt(cell.dataset.week);
-    const currentDate = cell.dataset.currentDate || '';
-    
-    // Validate required data
-    if (!type || !templateId || !week) {
-        console.error('Missing required data:', { type, templateId, week });
-        return;
-    }
-    
-    // Calculate default date based on week number
-    const currentYear = parseInt(document.getElementById('currentYear')?.textContent || new Date().getFullYear());
-    let defaultDate = currentDate;
-    
-    if (!defaultDate) {
-        // Calculate date from week number
-        // Week 1-4 = Januari, Week 5-8 = Februari, dst
-        const month = Math.ceil(week / 4); // 1-12
-        const weekInMonth = ((week - 1) % 4) + 1; // 1-4
-        const day = ((weekInMonth - 1) * 7) + 1; // 1, 8, 15, 22
-        
-        // Create date string
-        const dateObj = new Date(currentYear, month - 1, day);
-        defaultDate = dateObj.toISOString().split('T')[0];
-    }
-    
-    // Set modal title
-    const modalTitle = document.getElementById('modalTitle');
-    if (modalTitle) {
-        modalTitle.textContent = type === 'plan' ? 'Update Plan Schedule' : 'Update Actual Date';
-    }
-    
-    // Set form data
-    const templateIdInput = document.getElementById('scheduleTemplateId');
-    const weekInput = document.getElementById('scheduleWeek');
-    const typeInput = document.getElementById('scheduleType');
-    const dateInput = document.getElementById('scheduleDate');
-    
-    if (templateIdInput) templateIdInput.value = templateId;
-    if (weekInput) weekInput.value = week;
-    if (typeInput) typeInput.value = type;
-    if (dateInput) dateInput.value = defaultDate; // Use calculated default date
-    
-    // Show/hide regenerate checkbox (only for plan)
-    const regenerateGroup = document.getElementById('regenerateGroup');
-    if (regenerateGroup) {
-        if (type === 'plan') {
-            regenerateGroup.style.display = 'block';
-        } else {
-            regenerateGroup.style.display = 'none';
-        }
-    }
-    
-    // Show modal
-    const modal = document.getElementById('scheduleModal');
-    if (modal) {
-        modal.classList.add('show');
-    }
-}
-
-function closeScheduleModal() {
-    document.getElementById('scheduleModal').classList.remove('show');
-    currentCell = null;
-}
-
-function submitSchedule() {
-    const form = document.getElementById('scheduleForm');
-    const formData = new FormData(form);
-    const type = formData.get('type');
-    const url = type === 'plan' 
-        ? '{{ route("maintenance-template.update-schedule") }}'
-        : '{{ route("maintenance-template.update-actual") }}';
-    
-    // Show loading
-    document.getElementById('loadingOverlay').classList.add('show');
-    
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Accept': 'application/json',
-        },
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('loadingOverlay').classList.remove('show');
-        
-        if (data.success) {
-            closeScheduleModal();
-            // Reload page to show updated data
-            window.location.reload();
-        } else {
-            alert('Error: ' + (data.message || 'Gagal update schedule'));
-        }
-    })
-    .catch(error => {
-        document.getElementById('loadingOverlay').classList.remove('show');
-        console.error('Error:', error);
-        alert('Error: Gagal update schedule. Silakan coba lagi.');
-    });
-}
-
-// Close modal on overlay click
-document.getElementById('scheduleModal')?.addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeScheduleModal();
-    }
-});
-
-// Close modal on ESC key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeScheduleModal();
-    }
-});
-
 // Category filter
 document.getElementById('filterCategory')?.addEventListener('change', function(e) {
     const category = e.target.value.toLowerCase();
@@ -801,6 +740,303 @@ document.getElementById('filterCategory')?.addEventListener('change', function(e
             row.style.display = 'none';
         }
     });
+});
+
+// Ensure modals are hidden on page load
+document.addEventListener('DOMContentLoaded', function() {
+    ['planContextModal', 'actualContextModal', 'datePickerModal', 'loadingOverlay'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('show');
+    });
+});
+
+// PLAN Context Menu
+let currentPlanCell = null;
+
+function openPlanContextMenu(cell) {
+    if (!cell) return;
+    event?.stopPropagation();
+    event?.preventDefault();
+    
+    currentPlanCell = cell;
+    const assetName = cell.dataset.assetName || '';
+    const bagianName = cell.dataset.bagianName || '';
+    const planDate = cell.dataset.planDate || '';
+    const actualDate = cell.dataset.actualDate || '';
+    const isCompleted = cell.dataset.isCompleted === '1';
+    const scheduleId = cell.dataset.scheduleId || '';
+    
+    const modal = document.getElementById('planContextModal');
+    const title = document.getElementById('planModalTitle');
+    const info = document.getElementById('planModalInfo');
+    const details = document.getElementById('planModalDetails');
+    const actions = document.getElementById('planModalActions');
+    
+    title.innerHTML = isCompleted 
+        ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2196F3" stroke-width="2" style="vertical-align: middle; margin-right: 8px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>Detail Maintenance (Selesai)'
+        : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A9C5D" stroke-width="2" style="vertical-align: middle; margin-right: 8px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>Edit Tanggal Plan';
+    
+    info.textContent = `${assetName} - ${bagianName}`;
+    
+    if (isCompleted) {
+        const planDateObj = new Date(planDate + 'T00:00:00');
+        const actualDateObj = new Date(actualDate + 'T00:00:00');
+        details.innerHTML = `
+            <div style="display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2" style="margin-top: 2px;">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <div>
+                    <p style="font-size: 10px; color: #666; margin: 0 0 2px 0;">Plan:</p>
+                    <p style="font-size: 11px; font-weight: bold; margin: 0;">${planDateObj.getDate()}-${planDateObj.getMonth() + 1}-${planDateObj.getFullYear()}</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: flex-start;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" style="margin-top: 2px;">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <div>
+                    <p style="font-size: 10px; color: #666; margin: 0 0 2px 0;">Actual:</p>
+                    <p style="font-size: 11px; font-weight: bold; margin: 0;">${actualDateObj.getDate()}-${actualDateObj.getMonth() + 1}-${actualDateObj.getFullYear()}</p>
+                </div>
+            </div>
+        `;
+        actions.innerHTML = '<button type="button" class="btn-modal btn-modal-cancel" onclick="closePlanContextModal()">Tutup</button>';
+    } else {
+        const planDateObj = planDate ? new Date(planDate + 'T00:00:00') : null;
+        details.innerHTML = planDateObj 
+            ? `<p style="font-size: 11px; font-weight: 500;">Plan: ${planDateObj.getDate()}-${planDateObj.getMonth() + 1}-${planDateObj.getFullYear()}</p>`
+            : '<p style="font-size: 11px; font-weight: 500;">Plan: -</p>';
+        
+        actions.innerHTML = `
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closePlanContextModal()">Tutup</button>
+            <button type="button" class="btn-modal" style="background: #4CAF50; color: white;" onclick="tambahActual('${scheduleId}', '${planDate}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
+                </svg>
+                Tambah Actual
+            </button>
+            <button type="button" class="btn-modal btn-modal-submit" onclick="ubahTanggalPlan('${scheduleId}', '${planDate}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Ubah Tanggal
+            </button>
+        `;
+    }
+    
+    modal.classList.add('show');
+}
+
+function closePlanContextModal() {
+    document.getElementById('planContextModal').classList.remove('show');
+    currentPlanCell = null;
+}
+
+// ACTUAL Context Menu
+let currentActualCell = null;
+
+function openActualContextMenu(cell) {
+    if (!cell) return;
+    event?.stopPropagation();
+    event?.preventDefault();
+    
+    currentActualCell = cell;
+    const assetName = cell.dataset.assetName || '';
+    const bagianName = cell.dataset.bagianName || '';
+    const actualDate = cell.dataset.actualDate || '';
+    const scheduleId = cell.dataset.scheduleId || '';
+    
+    const modal = document.getElementById('actualContextModal');
+    const info = document.getElementById('actualModalInfo');
+    const dateText = document.getElementById('actualModalDate');
+    const actions = document.getElementById('actualModalActions');
+    
+    info.textContent = `${assetName} - ${bagianName}`;
+    
+    if (actualDate) {
+        const actualDateObj = new Date(actualDate + 'T00:00:00');
+        dateText.textContent = `Tanggal actual: ${actualDateObj.getDate()}-${actualDateObj.getMonth() + 1}-${actualDateObj.getFullYear()}`;
+        
+        actions.innerHTML = `
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeActualContextModal()">Batal</button>
+            <button type="button" class="btn-modal" style="background: #f44336; color: white;" onclick="hapusActual('${scheduleId}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Hapus
+            </button>
+            <button type="button" class="btn-modal btn-modal-submit" onclick="setActual('${scheduleId}', '${actualDate}')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Edit
+            </button>
+        `;
+    } else {
+        dateText.textContent = 'Belum ada tanggal actual';
+        
+        actions.innerHTML = `
+            <button type="button" class="btn-modal btn-modal-cancel" onclick="closeActualContextModal()">Batal</button>
+            <button type="button" class="btn-modal btn-modal-submit" onclick="setActual('${scheduleId}', '')">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                Set Tanggal
+            </button>
+        `;
+    }
+    
+    modal.classList.add('show');
+}
+
+function closeActualContextModal() {
+    document.getElementById('actualContextModal').classList.remove('show');
+    currentActualCell = null;
+}
+
+// Date Picker Modal
+function tambahActual(scheduleId, currentDate) {
+    closePlanContextModal();
+    openDatePicker('Tambah Tanggal Actual', scheduleId, 'tambah-actual', currentDate || new Date().toISOString().split('T')[0]);
+}
+
+function setActual(scheduleId, currentDate) {
+    closeActualContextModal();
+    openDatePicker(currentDate ? 'Edit Tanggal Actual' : 'Set Tanggal Actual', scheduleId, 'set-actual', currentDate || new Date().toISOString().split('T')[0]);
+}
+
+function ubahTanggalPlan(scheduleId, currentDate) {
+    closePlanContextModal();
+    openDatePicker('Ubah Tanggal Plan', scheduleId, 'ubah-plan', currentDate);
+}
+
+function openDatePicker(title, scheduleId, type, initialDate) {
+    document.getElementById('datePickerTitle').textContent = title;
+    document.getElementById('datePickerScheduleId').value = scheduleId;
+    document.getElementById('datePickerType').value = type;
+    document.getElementById('pickedDate').value = initialDate;
+    document.getElementById('datePickerModal').classList.add('show');
+}
+
+function closeDatePickerModal() {
+    document.getElementById('datePickerModal').classList.remove('show');
+}
+
+function submitDatePicker() {
+    const scheduleId = document.getElementById('datePickerScheduleId').value;
+    const type = document.getElementById('datePickerType').value;
+    const date = document.getElementById('pickedDate').value;
+    
+    if (!scheduleId || !date) {
+        alert('Data tidak lengkap');
+        return;
+    }
+    
+    document.getElementById('loadingOverlay').classList.add('show');
+    
+    let url = '';
+    let data = { date: date };
+    
+    if (type === 'ubah-plan') {
+        url = '{{ route("maintenance-template.update-plan-date") }}';
+        data.schedule_id = scheduleId;
+    } else {
+        url = '{{ route("maintenance-template.set-actual-date") }}';
+        data.schedule_id = scheduleId;
+    }
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('loadingOverlay').classList.remove('show');
+        closeDatePickerModal();
+        
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Gagal menyimpan tanggal'));
+        }
+    })
+    .catch(error => {
+        document.getElementById('loadingOverlay').classList.remove('show');
+        console.error('Error:', error);
+        alert('Error: Gagal menyimpan tanggal. Silakan coba lagi.');
+    });
+}
+
+function hapusActual(scheduleId) {
+    if (!confirm('Yakin ingin menghapus tanggal actual?')) return;
+    
+    closeActualContextModal();
+    document.getElementById('loadingOverlay').classList.add('show');
+    
+    fetch('{{ route("maintenance-template.delete-actual-date") }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ schedule_id: scheduleId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('loadingOverlay').classList.remove('show');
+        
+        if (data.success) {
+            window.location.reload();
+        } else {
+            alert('Error: ' + (data.message || 'Gagal menghapus tanggal actual'));
+        }
+    })
+    .catch(error => {
+        document.getElementById('loadingOverlay').classList.remove('show');
+        console.error('Error:', error);
+        alert('Error: Gagal menghapus tanggal actual. Silakan coba lagi.');
+    });
+}
+
+// Close modals on overlay click
+['planContextModal', 'actualContextModal', 'datePickerModal'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('show');
+        }
+    });
+});
+
+// Close modals on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closePlanContextModal();
+        closeActualContextModal();
+        closeDatePickerModal();
+    }
 });
 </script>
 @endsection

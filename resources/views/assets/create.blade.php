@@ -83,7 +83,12 @@
                 <div class="bagian-item" style="margin-bottom: 24px; padding: 16px; border: 1px solid #e0e0e0; border-radius: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                         <h3 style="font-size: 16px; font-weight: bold; color: #022415;">Bagian 1</h3>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="removeBagian(this)" style="display: none;">Hapus</button>
+                        <button type="button" onclick="removeBagian(this)" style="display: none; background-color: #F44336; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; width: 36px; height: 36px; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 8px rgba(244,67,54,0.3)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'" title="Hapus Bagian">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                        </button>
                     </div>
                     
                     <div class="form-group" style="margin-bottom: 16px;">
@@ -95,7 +100,12 @@
                         <div class="komponen-item" style="margin-bottom: 12px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                 <label class="form-label">Komponen 1</label>
-                                <button type="button" class="btn btn-danger btn-sm" onclick="removeKomponen(this)" style="display: none;">Hapus</button>
+                                <button type="button" onclick="removeKomponen(this)" style="display: none; background-color: #F44336; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; width: 36px; height: 36px; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 8px rgba(244,67,54,0.3)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'" title="Hapus Komponen">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
                             </div>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                 <input type="text" name="bagian[0][komponen][0][nama_komponen]" class="form-input" placeholder="Nama Komponen *" required>
@@ -104,25 +114,66 @@
                         </div>
                     </div>
                     
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="addKomponen(this)" style="margin-top: 8px;">+ Tambah Komponen</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="addKomponen(this)" style="margin-top: 8px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Tambah Komponen
+                    </button>
                 </div>
             </div>
             
-            <button type="button" class="btn btn-secondary" onclick="addBagian()" style="margin-bottom: 24px;">+ Tambah Bagian</button>
+            <button type="button" class="btn btn-primary" onclick="addBagian()" style="margin-bottom: 24px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Tambah Bagian
+            </button>
             
             <div style="margin: 24px 0; border-top: 2px solid #e0e0e0;"></div>
             
             <div class="form-group">
                 <label for="foto" class="form-label">Gambar Aset</label>
-                <input type="file" id="foto" name="foto" accept="image/*" class="form-input">
+                <input type="file" id="foto" name="foto" accept="image/*" class="form-input" onchange="handleImageUpload(event)" style="margin-bottom: 12px;">
+                
+                <!-- Image Preview & Cropper -->
+                <div id="imagePreviewContainer" style="display: none; margin-top: 16px;">
+                    <div style="position: relative; width: 320px; height: 200px; overflow: hidden; border: 2px solid #e0e0e0; border-radius: 8px; margin: 0 auto; background-color: #f5f5f5; cursor: move;">
+                        <img id="imagePreview" src="" alt="Preview" style="position: absolute; max-width: none; user-select: none;">
+                    </div>
+                    <div style="text-align: center; margin-top: 12px; color: #666; font-size: 13px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;">
+                            <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3"></path>
+                        </svg>
+                        Geser gambar untuk menyesuaikan posisi
+                    </div>
+                </div>
+                
+                <input type="hidden" id="cropData" name="crop_data">
+                
                 @error('foto')
                     <div class="error-message">{{ $message }}</div>
                 @enderror
             </div>
             
-            <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
-                <a href="{{ route('assets.index') }}" class="btn btn-secondary" style="text-decoration: none;">Batal</a>
-                <button type="submit" class="btn btn-primary">Simpan</button>
+            <div style="margin-top: 32px; display: flex; justify-content: flex-end; gap: 12px; padding-top: 24px; border-top: 1px solid #e0e0e0;">
+                <a href="{{ route('assets.index') }}" class="btn btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Batal
+                </a>
+                <button type="submit" class="btn btn-primary" style="min-width: 140px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Simpan
+                </button>
             </div>
         </form>
     </div>
@@ -142,7 +193,12 @@ function addBagian() {
     newBagian.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
             <h3 style="font-size: 16px; font-weight: bold; color: #022415;">Bagian ${bagianNum + 1}</h3>
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeBagian(this)">Hapus</button>
+            <button type="button" onclick="removeBagian(this)" style="background-color: #F44336; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; width: 36px; height: 36px; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 8px rgba(244,67,54,0.3)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'" title="Hapus Bagian">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
         </div>
         <div class="form-group" style="margin-bottom: 16px;">
             <label class="form-label">Nama Bagian *</label>
@@ -152,7 +208,12 @@ function addBagian() {
             <div class="komponen-item" style="margin-bottom: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <label class="form-label">Komponen 1</label>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeKomponen(this)" style="display: none;">Hapus</button>
+                    <button type="button" onclick="removeKomponen(this)" style="display: none; background-color: #F44336; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; width: 36px; height: 36px; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 8px rgba(244,67,54,0.3)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'" title="Hapus Komponen">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                     <input type="text" name="bagian[${bagianIndex}][komponen][0][nama_komponen]" class="form-input" placeholder="Nama Komponen *" required>
@@ -160,7 +221,13 @@ function addBagian() {
                 </div>
             </div>
         </div>
-        <button type="button" class="btn btn-secondary btn-sm" onclick="addKomponen(this)" style="margin-top: 8px;">+ Tambah Komponen</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="addKomponen(this)" style="margin-top: 8px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Tambah Komponen
+        </button>
     `;
     
     container.appendChild(newBagian);
@@ -170,7 +237,8 @@ function addBagian() {
     // Show remove button for all bagian items
     document.querySelectorAll('.bagian-item').forEach((item, index) => {
         if (index > 0) {
-            item.querySelector('.btn-danger').style.display = 'block';
+            const deleteBtn = item.querySelector('button[onclick="removeBagian(this)"]');
+            if (deleteBtn) deleteBtn.style.display = 'block';
         }
     });
 }
@@ -191,7 +259,12 @@ function addKomponen(btn) {
     newKomponen.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <label class="form-label">Komponen ${komponenIndex + 1}</label>
-            <button type="button" class="btn btn-danger btn-sm" onclick="removeKomponen(this)">Hapus</button>
+            <button type="button" onclick="removeKomponen(this)" style="background-color: #F44336; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; width: 36px; height: 36px; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 8px rgba(244,67,54,0.3)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'" title="Hapus Komponen">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <input type="text" name="bagian[${bagianIndex}][komponen][${komponenIndex}][nama_komponen]" class="form-input" placeholder="Nama Komponen *" required>
@@ -212,6 +285,122 @@ function addKomponen(btn) {
 
 function removeKomponen(btn) {
     btn.closest('.komponen-item').remove();
+}
+
+// Image Upload Handler with Drag to Position
+let isDragging = false;
+let startX, startY, initialX, initialY;
+
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const preview = document.getElementById('imagePreview');
+        const container = document.getElementById('imagePreviewContainer');
+        
+        preview.src = e.target.result;
+        container.style.display = 'block';
+        
+        // Set initial position
+        preview.onload = function() {
+            const containerWidth = 320;
+            const containerHeight = 200;
+            const imgWidth = preview.naturalWidth;
+            const imgHeight = preview.naturalHeight;
+            
+            // Calculate scale to fill container (cover behavior)
+            const scaleX = containerWidth / imgWidth;
+            const scaleY = containerHeight / imgHeight;
+            const scale = Math.max(scaleX, scaleY);
+            
+            const newWidth = imgWidth * scale;
+            const newHeight = imgHeight * scale;
+            
+            preview.style.width = newWidth + 'px';
+            preview.style.height = newHeight + 'px';
+            
+            // Center image
+            const offsetX = (containerWidth - newWidth) / 2;
+            const offsetY = (containerHeight - newHeight) / 2;
+            
+            preview.style.left = offsetX + 'px';
+            preview.style.top = offsetY + 'px';
+            
+            initialX = offsetX;
+            initialY = offsetY;
+        };
+    };
+    reader.readAsDataURL(file);
+}
+
+// Drag functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const preview = document.getElementById('imagePreview');
+    const container = preview.parentElement;
+    
+    container.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDrag);
+    
+    // Touch support
+    container.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchmove', handleTouchMove);
+    document.addEventListener('touchend', stopDrag);
+});
+
+function startDrag(e) {
+    const preview = document.getElementById('imagePreview');
+    if (!preview.src) return;
+    
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    initialX = parseFloat(preview.style.left) || 0;
+    initialY = parseFloat(preview.style.top) || 0;
+    e.preventDefault();
+}
+
+function drag(e) {
+    if (!isDragging) return;
+    
+    const preview = document.getElementById('imagePreview');
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+    
+    preview.style.left = (initialX + deltaX) + 'px';
+    preview.style.top = (initialY + deltaY) + 'px';
+}
+
+function stopDrag() {
+    isDragging = false;
+}
+
+function handleTouchStart(e) {
+    const touch = e.touches[0];
+    const preview = document.getElementById('imagePreview');
+    if (!preview.src) return;
+    
+    isDragging = true;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    initialX = parseFloat(preview.style.left) || 0;
+    initialY = parseFloat(preview.style.top) || 0;
+    e.preventDefault();
+}
+
+function handleTouchMove(e) {
+    if (!isDragging) return;
+    
+    const touch = e.touches[0];
+    const preview = document.getElementById('imagePreview');
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+    
+    preview.style.left = (initialX + deltaX) + 'px';
+    preview.style.top = (initialY + deltaY) + 'px';
+    e.preventDefault();
 }
 </script>
 @endsection

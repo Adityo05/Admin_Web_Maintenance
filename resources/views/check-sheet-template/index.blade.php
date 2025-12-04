@@ -50,7 +50,7 @@
                 Clear
             </a>
         @endif
-        <a href="{{ route('check-sheet-template.create') }}" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <a href="{{ route('check-sheet-template.create') }}" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto; display: flex; align-items: center; gap: 8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -76,66 +76,48 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($processedTemplates as $index => $template)
+                @forelse($processedData as $index => $row)
                     <tr>
-                        <td style="{{ !empty($template->no_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}; text-align: center;">{{ $index + 1 }}</td>
-                        <td style="{{ !empty($template->has_same_asset_below) ? 'border-bottom: none;' : '' }}">
-                            @if(!empty($template->show_asset_name))
-                                @if($template->komponenAsset && $template->komponenAsset->asset)
-                                    <strong style="color: #022415;">{{ $template->komponenAsset->asset->nama_assets }}</strong>
-                                @else
-                                    <span style="color: #999;">-</span>
-                                @endif
-                            @endif
+                        <td style="text-align: center;">{{ $index + 1 }}</td>
+                        
+                        @if(!empty($row['show_asset_name']))
+                        <td rowspan="{{ $row['asset_rowspan'] }}">
+                            <strong style="color: #022415;">{{ $row['asset_name'] }}</strong>
                         </td>
-                        <td style="{{ !empty($template->bagian_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
-                            @if($template->komponenAsset)
-                                <div style="color: #444;">
-                                    @if($template->komponenAsset->bagianMesin)
-                                        <small style="color: #0a9c5d; font-weight: 600;">{{ $template->komponenAsset->bagianMesin->nama_bagian }}</small><br>
-                                    @endif
-                                    {{ $template->komponenAsset->nama_bagian }}
-                                </div>
-                            @else
-                                <span style="color: #999;">-</span>
-                            @endif
+                        @endif
+                        
+                        @if(!empty($row['show_bagian_name']))
+                        <td rowspan="{{ $row['bagian_rowspan'] }}">
+                            <div style="color: #444;">
+                                <small style="color: #0a9c5d; font-weight: 600;">{{ $row['bagian_name'] }}</small><br>
+                                {{ $row['komponen_name'] }}
+                            </div>
                         </td>
-                        <td style="{{ !empty($template->periode_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
-                            @if($template->periode && $template->interval_periode)
-                                <span class="badge badge-info" style="white-space: nowrap; background: #2196F3; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
-                                    Per {{ $template->interval_periode }} 
-                                    @if($template->periode == 'Harian') 
-                                        Hari
-                                    @elseif($template->periode == 'Mingguan') 
-                                        Minggu
-                                    @elseif($template->periode == 'Bulanan') 
-                                        Bulan
-                                    @else
-                                        {{ $template->periode }}
-                                    @endif
-                                </span>
-                            @else
-                                <span style="color: #999;">-</span>
-                            @endif
+                        @endif
+                        
+                        <td>
+                            <span class="badge badge-info" style="white-space: nowrap; background: #2196F3; color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;">
+                                {{ $row['periode'] }}
+                            </span>
                         </td>
-                        <td style="{{ !empty($template->jenis_pekerjaan_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
+                        <td>
                             <div style="color: #444; line-height: 1.4;">
-                                {{ $template->jenis_pekerjaan }}
+                                {{ $row['jenis_pekerjaan'] }}
                             </div>
                         </td>
-                        <td style="{{ !empty($template->std_prwtn_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
+                        <td>
                             <div style="color: #666; font-size: 13px; line-height: 1.4;">
-                                {{ $template->std_prwtn }}
+                                {{ $row['std_prwtn'] }}
                             </div>
                         </td>
-                        <td style="{{ !empty($template->alat_bahan_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
+                        <td>
                             <div style="color: #666; font-size: 13px; line-height: 1.4;">
-                                {{ $template->alat_bahan }}
+                                {{ $row['alat_bahan'] }}
                             </div>
                         </td>
-                        <td style="{{ !empty($template->aksi_has_border) ? 'border-top: 1px solid #d0d0d0;' : '' }}">
+                        <td>
                             <div style="display: flex; gap: 8px; justify-content: center;">
-                                <a href="{{ route('check-sheet-template.edit', $template->id) }}" 
+                                <a href="{{ route('check-sheet-template.edit', $row['id']) }}" 
                                    class="btn-icon btn-icon-edit" 
                                    title="Edit">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -143,12 +125,12 @@
                                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                     </svg>
                                 </a>
-                                <form method="POST" action="{{ route('check-sheet-template.destroy', $template->id) }}" style="display: inline-block;">
+                                <form method="POST" action="{{ route('check-sheet-template.destroy', $row['id']) }}" style="display: inline-block;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" 
                                             class="btn-icon btn-icon-delete" 
-                                            onclick="return confirm('Apakah Anda yakin ingin menghapus:\n{{ $template->komponenAsset && $template->komponenAsset->asset ? $template->komponenAsset->asset->nama_assets : '' }} - {{ $template->komponenAsset ? $template->komponenAsset->nama_bagian : '' }}?')" 
+                                            onclick="return confirm('Apakah Anda yakin ingin menghapus:\n{{ $row['asset_name'] }} - {{ $row['komponen_name'] }}?')" 
                                             title="Hapus">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="3 6 5 6 21 6"></polyline>

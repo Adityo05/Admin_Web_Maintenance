@@ -40,7 +40,7 @@
             @endforeach
         </select>
         <button type="submit" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto;">Filter</button>
-        <a href="{{ route('karyawan.create') }}" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <a href="{{ route('karyawan.create') }}" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto; display: flex; align-items: center; gap: 8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -52,7 +52,7 @@
     <div style="margin-top: 8px;">
         <span class="badge badge-primary" style="display: inline-flex; align-items: center; gap: 8px;">
             Mesin: {{ $filterMesin }}
-            <a href="{{ route('karyawan.index', ['search' => $searchQuery]) }}" style="color: inherit; text-decoration: none;">×</a>
+            <a href="{{ route('karyawan.index', ['search' => $searchQuery]) }}" style="color: inherit;">×</a>
         </span>
     </div>
     @endif
@@ -61,36 +61,46 @@
 <!-- Table -->
 <div class="table-container">
     <div class="table-scroll-wrapper">
-        <table class="table">
+        <table class="table" style="border-collapse: collapse;">
             <thead>
-                <tr style="background: linear-gradient(135deg, #0A9C5D 0%, #088A52 100%);">
-                    <th style="width: 60px; color: white;">NO</th>
-                    <th style="color: white;">NAMA PETUGAS</th>
-                    <th style="color: white;">JABATAN</th>
-                    <th style="color: white;">MESIN YANG DIKERJAKAN</th>
-                    <th style="width: 150px; color: white;">NOMOR TELEPON</th>
-                    <th style="color: white;">ALAMAT EMAIL</th>
-                    <th style="color: white;">PASSWORD</th>
-                    <th style="width: 150px; color: white;">AKSI</th>
+                <tr style="background: linear-gradient(135deg, #0A9C5D 0%, #088A52 100%); box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <th style="width: 60px; color: white; font-weight: bold; font-size: 13px; padding: 12px 8px; border-right: 0.5px solid rgba(255,255,255,0.2);">NO</th>
+                    <th style="color: white; font-weight: bold; font-size: 13px; padding: 12px 8px; border-right: 0.5px solid rgba(255,255,255,0.2);">NAMA PETUGAS</th>
+                    <th style="color: white; font-weight: bold; font-size: 13px; padding: 12px 8px; border-right: 0.5px solid rgba(255,255,255,0.2);">JABATAN</th>
+                    <th style="color: white; font-weight: bold; font-size: 13px; padding: 12px 8px; border-right: 0.5px solid rgba(255,255,255,0.2);">MESIN YANG DIKERJAKAN</th>
+                    <th style="width: 150px; color: white; font-weight: bold; font-size: 13px; padding: 12px 8px; border-right: 0.5px solid rgba(255,255,255,0.2);">NOMOR TELEPON</th>
+                    <th style="color: white; font-weight: bold; font-size: 13px; padding: 12px 8px; border-right: 0.5px solid rgba(255,255,255,0.2);">ALAMAT EMAIL</th>
+                    <th style="color: white; font-weight: bold; font-size: 13px; padding: 12px 8px; border-right: 0.5px solid rgba(255,255,255,0.2);">PASSWORD</th>
+                    <th style="width: 150px; color: white; font-weight: bold; font-size: 13px; padding: 12px 8px;">AKSI</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($karyawanData as $index => $row)
-                <tr style="background-color: {{ $index % 2 == 0 ? '#ffffff' : '#f9f9f9' }};">
-                    <td style="text-align: center;">{{ $index + 1 }}</td>
-                    <td>{{ $row['nama'] }}</td>
-                    <td>{{ $row['jabatan'] }}</td>
-                    <td>{{ $row['mesin'] }}</td>
-                    <td>{{ $row['telp'] }}</td>
-                    <td>{{ $row['email'] }}</td>
-                    <td>••••••••</td>
-                    <td>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <a href="{{ route('karyawan.edit', $row['id']) }}" class="btn btn-sm" style="background-color: #0A9C5D; color: white; text-decoration: none; padding: 6px 12px; font-size: 12px; height: 32px; display: inline-flex; align-items: center; box-sizing: border-box;">Edit</a>
-                            <form action="{{ route('karyawan.destroy', $row['id']) }}" method="POST" style="display: inline; margin: 0;" onsubmit="return confirmDelete('Apakah Anda yakin ingin menghapus karyawan ini?')">
+                <tr style="background-color: {{ $index % 2 == 0 ? '#ffffff' : '#f9f9f9' }}; transition: all 0.2s;" onmouseover="this.style.backgroundColor='rgba(10, 156, 93, 0.1)'" onmouseout="this.style.backgroundColor='{{ $index % 2 == 0 ? '#ffffff' : '#f9f9f9' }}'">
+                    <td style="text-align: center; padding: 8px; border-right: 0.5px solid #e0e0e0; border-bottom: 0.5px solid #e0e0e0; font-size: 12px; color: #666;">{{ $index + 1 }}</td>
+                    <td style="padding: 8px; border-right: 0.5px solid #e0e0e0; border-bottom: 0.5px solid #e0e0e0; font-size: 12px; color: #333;">{{ $row['nama'] }}</td>
+                    <td style="padding: 8px; border-right: 0.5px solid #e0e0e0; border-bottom: 0.5px solid #e0e0e0; font-size: 12px; color: #333; text-align: center;">{{ $row['jabatan'] }}</td>
+                    <td style="padding: 8px; border-right: 0.5px solid #e0e0e0; border-bottom: 0.5px solid #e0e0e0; font-size: 12px; color: #333; text-align: center;">{{ $row['mesin'] }}</td>
+                    <td style="padding: 8px; border-right: 0.5px solid #e0e0e0; border-bottom: 0.5px solid #e0e0e0; font-size: 12px; color: #333; text-align: center;">{{ $row['telp'] }}</td>
+                    <td style="padding: 8px; border-right: 0.5px solid #e0e0e0; border-bottom: 0.5px solid #e0e0e0; font-size: 12px; color: #333; text-align: center;">{{ $row['email'] }}</td>
+                    <td style="padding: 8px; border-right: 0.5px solid #e0e0e0; border-bottom: 0.5px solid #e0e0e0; font-size: 12px; color: #333; text-align: center;">••••••••</td>
+                    <td style="padding: 8px; border-bottom: 0.5px solid #e0e0e0;">
+                        <div style="display: flex; gap: 8px; align-items: center; justify-content: center;">
+                            <button onclick="window.location.href='{{ route('karyawan.edit', $row['id']) }}'" style="background-color: #2196F3; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 8px rgba(33,150,243,0.3)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'" title="Edit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <form action="{{ route('karyawan.destroy', $row['id']) }}" method="POST" style="display: inline; margin: 0;" onsubmit="return confirmDelete('Apakah Anda yakin ingin menghapus karyawan {{ $row['nama'] }}?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-danger" style="padding: 6px 12px; font-size: 12px; height: 32px; display: inline-flex; align-items: center; box-sizing: border-box;">Hapus</button>
+                                <button type="submit" style="background-color: #F44336; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 8px rgba(244,67,54,0.3)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'" title="Hapus">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
                             </form>
                         </div>
                     </td>

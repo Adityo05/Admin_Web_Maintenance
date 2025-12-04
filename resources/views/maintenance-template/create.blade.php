@@ -65,18 +65,27 @@
                 <select name="bg_mesin_id" id="bg_mesin_id" class="form-select @error('bg_mesin_id') error @enderror" required>
                     <option value="">Pilih bagian mesin</option>
                 </select>
-                <div id="bagianLoading" style="display: none; padding: 12px; background: #f0f9f4; border-radius: 8px; margin-top: 8px; color: #0a9c5d; font-size: 13px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite; vertical-align: middle; margin-right: 8px;">
-                        <line x1="12" y1="2" x2="12" y2="6"></line>
-                        <line x1="12" y1="18" x2="12" y2="22"></line>
-                        <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
-                        <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
-                        <line x1="2" y1="12" x2="6" y2="12"></line>
-                        <line x1="18" y1="12" x2="22" y2="12"></line>
-                        <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
-                        <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
-                    </svg>
-                    Memuat bagian mesin...
+                <div id="bagianLoading" style="display: none; padding: 12px; background: linear-gradient(135deg, #f0f9f4 0%, #e8f5e9 100%); border-radius: 12px; margin-top: 8px; border: 2px solid #c8e6c9; animation: fadeIn 0.3s ease;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0a9c5d" stroke-width="2" style="animation: spin 1s linear infinite;">
+                            <line x1="12" y1="2" x2="12" y2="6"></line>
+                            <line x1="12" y1="18" x2="12" y2="22"></line>
+                            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+                            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+                            <line x1="2" y1="12" x2="6" y2="12"></line>
+                            <line x1="18" y1="12" x2="22" y2="12"></line>
+                            <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+                            <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
+                        </svg>
+                        <div>
+                            <div style="color: #0a9c5d; font-size: 14px; font-weight: 600; margin-bottom: 2px;">
+                                Memuat bagian mesin...
+                            </div>
+                            <div style="color: #66bb6a; font-size: 12px;">
+                                Mohon tunggu sebentar
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 @error('bg_mesin_id')
                     <span class="error-message">{{ $message }}</span>
@@ -140,12 +149,37 @@
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                     </svg>
-                    Tanggal
+                    Tanggal <span class="required">*</span>
                 </label>
-                <input type="date" name="tanggal_mulai" id="tanggal_mulai" 
+                <input type="text" name="tanggal_mulai" id="tanggal_mulai" 
                        class="form-input @error('tanggal_mulai') error @enderror" 
-                       value="{{ old('tanggal_mulai', date('Y-m-d')) }}">
+                       value="{{ old('tanggal_mulai', date('d F Y')) }}" 
+                       readonly 
+                       required
+                       style="cursor: pointer; background-color: white;"
+                       placeholder="Pilih tanggal">
+                <input type="hidden" name="tanggal_mulai_value" id="tanggal_mulai_value" value="{{ old('tanggal_mulai_value', date('Y-m-d')) }}">
                 @error('tanggal_mulai')
+                    <span class="error-message">{{ $message }}</span>
+                @enderror
+            </div>
+
+            <div class="form-group">
+                <label for="catatan">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Catatan (Opsional)
+                </label>
+                <textarea name="catatan" id="catatan" 
+                          class="form-input @error('catatan') error @enderror" 
+                          rows="3" 
+                          placeholder="Tambahkan catatan jika diperlukan">{{ old('catatan') }}</textarea>
+                @error('catatan')
                     <span class="error-message">{{ $message }}</span>
                 @enderror
             </div>
@@ -177,6 +211,33 @@
     to { transform: rotate(360deg); }
 }
 
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.form-group {
+    margin-bottom: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
 .form-group label {
     display: block;
     margin-bottom: 8px;
@@ -188,13 +249,128 @@
 .form-group label svg {
     color: #0a9c5d;
 }
+
+.required {
+    color: #d32f2f;
+    margin-left: 2px;
+}
+
+.form-input,
+.form-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.form-input:hover,
+.form-select:hover {
+    border-color: #c0c0c0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #0a9c5d;
+    box-shadow: 0 0 0 3px rgba(10, 156, 93, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+}
+
+.form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%230a9c5d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 48px;
+}
+
+textarea.form-input {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.6;
+    font-family: inherit;
+}
+
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 24px;
+    border: 2px solid #e0e0e0;
+    background: linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%);
+    color: #666;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btn-outline:hover {
+    background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+    border-color: #c0c0c0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: #333;
+    text-decoration: none;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 24px;
+    border: none;
+    background: linear-gradient(135deg, #0a9c5d 0%, #088c51 100%);
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(10, 156, 93, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #099251 0%, #077d47 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(10, 156, 93, 0.4);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 8px rgba(10, 156, 93, 0.3);
+}
 </style>
 
 <script>
+// Format tanggal Indonesia
+const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+function formatDateIndonesia(date) {
+    const day = date.getDate();
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day} ${month} ${year}`;
+}
+
+function formatDateSQL(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const assetsSelect = document.getElementById('assets_id');
     const bagianSelect = document.getElementById('bg_mesin_id');
     const bagianContainer = document.getElementById('bagianContainer');
+    const tanggalInput = document.getElementById('tanggal_mulai');
+    const tanggalValue = document.getElementById('tanggal_mulai_value');
 
     // Load bagian mesin when asset is selected
     assetsSelect.addEventListener('change', async function() {
@@ -207,20 +383,22 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Show loading
+        // Show container first
+        bagianContainer.style.display = 'block';
+        
+        // Show loading and hide select
         loadingDiv.style.display = 'block';
-        bagianSelect.innerHTML = '<option value="">Memuat...</option>';
-        bagianSelect.disabled = true;
+        bagianSelect.style.display = 'none';
 
         try {
             const response = await fetch(`/maintenance-template/bagian-mesin/${assetId}`);
             const bagianMesin = await response.json();
 
             bagianSelect.innerHTML = '<option value="">Pilih bagian mesin</option>';
-            bagianSelect.disabled = false;
-            loadingDiv.style.display = 'none';
             
             if (bagianMesin.length === 0) {
+                loadingDiv.style.display = 'none';
+                bagianSelect.style.display = 'block';
                 bagianSelect.innerHTML = '<option value="">Tidak ada bagian mesin</option>';
                 alert('⚠️ Mesin ini belum memiliki bagian.\n\nSilakan tambahkan bagian mesin terlebih dahulu di menu Data Assets.');
                 return;
@@ -233,15 +411,227 @@ document.addEventListener('DOMContentLoaded', function() {
                 bagianSelect.appendChild(option);
             });
 
-            bagianContainer.style.display = 'block';
+            // Hide loading and show select
+            loadingDiv.style.display = 'none';
+            bagianSelect.style.display = 'block';
         } catch (error) {
             console.error('Error loading bagian mesin:', error);
-            bagianSelect.innerHTML = '<option value="">Error memuat data</option>';
-            bagianSelect.disabled = false;
             loadingDiv.style.display = 'none';
+            bagianSelect.style.display = 'block';
+            bagianSelect.innerHTML = '<option value="">Error memuat data</option>';
             alert('❌ Gagal memuat bagian mesin. Silakan coba lagi.');
         }
     });
+
+    // Date picker untuk tanggal
+    tanggalInput.addEventListener('click', function() {
+        // Create modal overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.2s ease;
+        `;
+
+        // Create calendar container
+        const calendarContainer = document.createElement('div');
+        calendarContainer.style.cssText = `
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+            animation: slideUp 0.3s ease;
+        `;
+
+        // Get current date or selected date
+        let currentDate = tanggalValue.value ? new Date(tanggalValue.value + 'T00:00:00') : new Date();
+        let viewYear = currentDate.getFullYear();
+        let viewMonth = currentDate.getMonth();
+        
+        // Store temporary selected date (only applied when clicking Simpan)
+        let tempSelectedDate = tanggalValue.value;
+
+        function renderCalendar() {
+            const firstDay = new Date(viewYear, viewMonth, 1);
+            const lastDay = new Date(viewYear, viewMonth + 1, 0);
+            const prevLastDay = new Date(viewYear, viewMonth, 0);
+            
+            const firstDayIndex = firstDay.getDay();
+            const lastDayDate = lastDay.getDate();
+            const prevLastDayDate = prevLastDay.getDate();
+
+            let calendarHTML = `
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <button type="button" id="prevMonth" style="background: #f5f5f5; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                        </button>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #022415;">${monthNames[viewMonth]} ${viewYear}</h3>
+                        <button type="button" id="nextMonth" style="background: #f5f5f5; border: none; width: 36px; height: 36px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px;">
+                        ${['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(day => 
+                            `<div style="text-align: center; padding: 8px; font-size: 12px; font-weight: 600; color: #999;">${day}</div>`
+                        ).join('')}
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;" id="calendarDays">
+            `;
+
+            // Previous month days
+            for (let i = firstDayIndex - 1; i >= 0; i--) {
+                calendarHTML += `<div style="text-align: center; padding: 10px; font-size: 14px; color: #ccc; border-radius: 8px;">${prevLastDayDate - i}</div>`;
+            }
+
+            // Current month days
+            for (let day = 1; day <= lastDayDate; day++) {
+                const date = new Date(viewYear, viewMonth, day);
+                const dateStr = formatDateSQL(date);
+                const isSelected = tempSelectedDate === dateStr;
+                const isToday = new Date().toDateString() === date.toDateString();
+                
+                let style = 'text-align: center; padding: 10px; font-size: 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s;';
+                if (isSelected) {
+                    style += 'background: linear-gradient(135deg, #0a9c5d 0%, #088c51 100%); color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(10, 156, 93, 0.3);';
+                } else if (isToday) {
+                    style += 'border: 2px solid #0a9c5d; color: #0a9c5d; font-weight: 600;';
+                } else {
+                    style += 'color: #333;';
+                }
+                
+                calendarHTML += `<div class="calendar-day" data-date="${dateStr}" style="${style}">${day}</div>`;
+            }
+
+            calendarHTML += `</div></div>`;
+
+            // Action buttons
+            calendarHTML += `
+                <div style="display: flex; gap: 12px; justify-content: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                    <button type="button" id="cancelCalendar" style="padding: 12px 24px; border: 2px solid #e0e0e0; background: white; color: #666; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                        Batal
+                    </button>
+                    <button type="button" id="confirmCalendar" style="padding: 12px 32px; border: none; background: linear-gradient(135deg, #0a9c5d 0%, #088c51 100%); color: white; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(10, 156, 93, 0.3);">
+                        Simpan
+                    </button>
+                </div>
+            `;
+
+            calendarContainer.innerHTML = calendarHTML;
+
+            // Add hover effects
+            const style = document.createElement('style');
+            style.textContent = `
+                .calendar-day:not([style*="background: linear-gradient"]):hover {
+                    background: #f0f9f4 !important;
+                    color: #0a9c5d !important;
+                    transform: scale(1.1);
+                }
+                #prevMonth:hover, #nextMonth:hover {
+                    background: #0a9c5d !important;
+                }
+                #prevMonth:hover svg, #nextMonth:hover svg {
+                    stroke: white !important;
+                }
+                #cancelCalendar:hover {
+                    background: #f5f5f5 !important;
+                    border-color: #c0c0c0 !important;
+                }
+                #confirmCalendar:hover {
+                    background: linear-gradient(135deg, #099251 0%, #077d47 100%) !important;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(10, 156, 93, 0.4) !important;
+                }
+                #confirmCalendar:active {
+                    transform: translateY(0);
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Event listeners
+            document.getElementById('prevMonth').addEventListener('click', () => {
+                viewMonth--;
+                if (viewMonth < 0) {
+                    viewMonth = 11;
+                    viewYear--;
+                }
+                renderCalendar();
+            });
+
+            document.getElementById('nextMonth').addEventListener('click', () => {
+                viewMonth++;
+                if (viewMonth > 11) {
+                    viewMonth = 0;
+                    viewYear++;
+                }
+                renderCalendar();
+            });
+
+            document.querySelectorAll('.calendar-day').forEach(day => {
+                day.addEventListener('click', function() {
+                    const selectedDate = this.getAttribute('data-date');
+                    if (selectedDate) {
+                        // Only update temporary selection, not the actual input
+                        tempSelectedDate = selectedDate;
+                        renderCalendar();
+                    }
+                });
+            });
+
+            document.getElementById('cancelCalendar').addEventListener('click', () => {
+                // Don't apply changes, just close
+                document.body.removeChild(overlay);
+            });
+
+            document.getElementById('confirmCalendar').addEventListener('click', () => {
+                // Apply the temporary selected date to actual input
+                if (tempSelectedDate) {
+                    tanggalValue.value = tempSelectedDate;
+                    const date = new Date(tempSelectedDate + 'T00:00:00');
+                    tanggalInput.value = formatDateIndonesia(date);
+                }
+                document.body.removeChild(overlay);
+            });
+        }
+
+        overlay.appendChild(calendarContainer);
+        document.body.appendChild(overlay);
+        renderCalendar();
+
+        // Close on overlay click
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                document.body.removeChild(overlay);
+            }
+        });
+    });
+
+    // Set default date saat load
+    if (tanggalValue.value) {
+        const defaultDate = new Date(tanggalValue.value + 'T00:00:00');
+        tanggalInput.value = formatDateIndonesia(defaultDate);
+    }
+});
+
+// Update form submission untuk menggunakan hidden field
+document.getElementById('maintenanceForm').addEventListener('submit', function(e) {
+    // Ganti name tanggal_mulai dari display input ke hidden input
+    document.getElementById('tanggal_mulai').removeAttribute('name');
+    document.getElementById('tanggal_mulai_value').setAttribute('name', 'tanggal_mulai');
 });
 </script>
 @endsection

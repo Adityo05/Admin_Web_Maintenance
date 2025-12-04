@@ -86,11 +86,10 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                 <div class="form-group">
                     <label for="jabatan" class="form-label">Jabatan *</label>
-                    <select id="jabatan" name="jabatan" class="form-input" required>
+                    <select id="jabatan" name="jabatan" class="form-input" required onchange="toggleMesinSelectionEdit(this.value)">
                         <option value="">Pilih Jabatan</option>
-                        @foreach($jabatanList as $jabatan)
-                            <option value="{{ $jabatan }}" {{ $karyawan->jabatan == $jabatan ? 'selected' : '' }}>{{ $jabatan }}</option>
-                        @endforeach
+                        <option value="Teknisi" {{ $karyawan->jabatan == 'Teknisi' ? 'selected' : '' }}>Teknisi</option>
+                        <option value="KASIE Teknisi" {{ $karyawan->jabatan == 'KASIE Teknisi' ? 'selected' : '' }}>KASIE Teknisi</option>
                     </select>
                     @error('jabatan')
                         <div class="error-message">{{ $message }}</div>
@@ -105,21 +104,57 @@
             
             <div style="margin: 24px 0; border-top: 2px solid #e0e0e0;"></div>
             
-            <div class="form-group">
+            <div class="form-group" id="mesinSelectionContainerEdit">
                 <label class="form-label">Mesin yang Dikerjakan (Multi-select)</label>
+                <p style="font-size: 12px; color: #666; margin-bottom: 8px;">* KASIE Teknisi dapat melihat semua mesin</p>
                 <div style="max-height: 300px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px;">
                     @foreach($assets as $asset)
                     <label style="display: flex; align-items: center; gap: 8px; padding: 8px; cursor: pointer; border-radius: 4px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f5f5f5'" onmouseout="this.style.backgroundColor='transparent'">
-                        <input type="checkbox" name="assets[]" value="{{ $asset->id }}" {{ in_array($asset->id, $selectedAssets) ? 'checked' : '' }} style="width: 18px; height: 18px; cursor: pointer;">
+                        <input type="checkbox" name="assets[]" value="{{ $asset->id }}" class="asset-checkbox-edit" {{ in_array($asset->id, $selectedAssets) ? 'checked' : '' }} style="width: 18px; height: 18px; cursor: pointer;">
                         <span>{{ $asset->nama_assets }} @if($asset->kode_assets)({{ $asset->kode_assets }})@endif</span>
                     </label>
                     @endforeach
                 </div>
             </div>
+
+            <script>
+            function toggleMesinSelectionEdit(jabatan) {
+                const container = document.getElementById('mesinSelectionContainerEdit');
+                const checkboxes = document.querySelectorAll('.asset-checkbox-edit');
+                
+                if (jabatan === 'KASIE Teknisi') {
+                    container.style.opacity = '0.5';
+                    container.style.pointerEvents = 'none';
+                    checkboxes.forEach(cb => cb.checked = false);
+                } else {
+                    container.style.opacity = '1';
+                    container.style.pointerEvents = 'auto';
+                }
+            }
             
-            <div style="margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px;">
-                <a href="{{ route('karyawan.index') }}" class="btn btn-secondary" style="text-decoration: none;">Batal</a>
-                <button type="submit" class="btn btn-primary">Simpan</button>
+            // Check on page load
+            document.addEventListener('DOMContentLoaded', function() {
+                const jabatanSelect = document.getElementById('jabatan');
+                toggleMesinSelectionEdit(jabatanSelect.value);
+            });
+            </script>
+            
+            <div style="margin-top: 32px; display: flex; justify-content: flex-end; gap: 12px; padding-top: 24px; border-top: 1px solid #e0e0e0;">
+                <a href="{{ route('karyawan.index') }}" class="btn btn-outline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    Batal
+                </a>
+                <button type="submit" class="btn btn-primary" style="min-width: 140px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Simpan Perubahan
+                </button>
             </div>
         </form>
     </div>

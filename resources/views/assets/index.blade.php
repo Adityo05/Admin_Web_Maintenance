@@ -40,7 +40,7 @@
             @endforeach
         </select>
         <button type="submit" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto;">Filter</button>
-        <a href="{{ route('assets.create') }}" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto; text-decoration: none; display: flex; align-items: center; gap: 8px;">
+        <a href="{{ route('assets.create') }}" class="btn btn-primary" style="width: auto; padding: 8px 20px; height: auto; display: flex; align-items: center; gap: 8px;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -64,20 +64,21 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th style="width: 150px;">
-                        <a href="{{ route('assets.index', array_merge(request()->all(), ['sort' => 'kode_assets', 'direction' => $sortColumn == 'kode_assets' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px;">
-                            Kode Aset
-                            @if($sortColumn == 'kode_assets')
+                    <th style="width: 60px;">No</th>
+                    <th style="width: 180px;">
+                        <a href="{{ route('assets.index', array_merge(request()->all(), ['sort' => 'nama_aset', 'direction' => $sortColumn == 'nama_aset' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px;">
+                            Nama Aset
+                            @if($sortColumn == 'nama_aset')
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     {{ $sortDirection == 'asc' ? '<polyline points="18 15 12 9 6 15"></polyline>' : '<polyline points="6 9 12 15 18 9"></polyline>' }}
                                 </svg>
                             @endif
                         </a>
                     </th>
-                    <th style="width: 200px;">
-                        <a href="{{ route('assets.index', array_merge(request()->all(), ['sort' => 'nama_aset', 'direction' => $sortColumn == 'nama_aset' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px;">
-                            Nama Aset
-                            @if($sortColumn == 'nama_aset')
+                    <th style="width: 120px;">
+                        <a href="{{ route('assets.index', array_merge(request()->all(), ['sort' => 'kode_assets', 'direction' => $sortColumn == 'kode_assets' && $sortDirection == 'asc' ? 'desc' : 'asc'])) }}" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px;">
+                            Kode Aset
+                            @if($sortColumn == 'kode_assets')
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     {{ $sortDirection == 'asc' ? '<polyline points="18 15 12 9 6 15"></polyline>' : '<polyline points="6 9 12 15 18 9"></polyline>' }}
                                 </svg>
@@ -96,61 +97,93 @@
                     </th>
                     <th style="width: 100px;">Status</th>
                     <th style="width: 100px;">Prioritas</th>
+                    <th style="width: 200px;">Maintenance Terakhir</th>
+                    <th style="width: 200px;">Maintenance Selanjutnya</th>
                     <th style="width: 150px;">Bagian Aset</th>
                     <th style="width: 150px;">Komponen Aset</th>
-                    <th style="width: 200px;">Produk yang Digunakan</th>
-                    <th style="width: 120px;">Aksi</th>
+                    <th style="width: 200px;">Spesifikasi</th>
+                    <th style="width: 250px;">Gambar Aset</th>
+                    <th style="width: 200px;">Aksi</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($processedData as $row)
-                <tr style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">
-                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">{{ !empty($row['show_asset_name']) ? ($row['kode_assets'] ?? '-') : '' }}</td>
-                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">{{ !empty($row['show_asset_name']) ? ($row['nama_aset'] ?? '-') : '' }}</td>
-                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">{{ !empty($row['show_asset_name']) ? ($row['jenis_aset'] ?? '-') : '' }}</td>
-                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">
-                        @if(!empty($row['show_asset_name']))
-                            <span class="badge 
-                                @if(strtolower($row['status'] ?? '') == 'aktif') badge-success
-                                @elseif(strtolower($row['status'] ?? '') == 'breakdown') badge-danger
-                                @elseif(strtolower($row['status'] ?? '') == 'perlu maintenance') badge-warning
-                                @else badge-secondary
-                                @endif">
-                                {{ $row['status'] ?? '-' }}
-                            </span>
-                        @endif
+                @forelse($processedData as $index => $row)
+                <tr>
+                    @if(!empty($row['show_asset_name']))
+                    <td rowspan="{{ $row['asset_rowspan'] }}">{{ $index + 1 }}</td>
+                    <td rowspan="{{ $row['asset_rowspan'] }}">{{ $row['nama_aset'] ?? '-' }}</td>
+                    <td rowspan="{{ $row['asset_rowspan'] }}">{{ $row['kode_assets'] ?? '-' }}</td>
+                    <td rowspan="{{ $row['asset_rowspan'] }}">{{ $row['jenis_aset'] ?? '-' }}</td>
+                    <td rowspan="{{ $row['asset_rowspan'] }}">
+                        <span class="badge 
+                            @if(strtolower($row['status'] ?? '') == 'aktif') badge-success
+                            @elseif(strtolower($row['status'] ?? '') == 'breakdown') badge-danger
+                            @elseif(strtolower($row['status'] ?? '') == 'perlu maintenance') badge-warning
+                            @else badge-secondary
+                            @endif">
+                            {{ $row['status'] ?? '-' }}
+                        </span>
                     </td>
-                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">
-                        @if(!empty($row['show_asset_name']))
-                            <span class="badge 
-                                @if(strtolower($row['mt_priority'] ?? '') == 'high') badge-danger
-                                @elseif(strtolower($row['mt_priority'] ?? '') == 'medium') badge-warning
-                                @elseif(strtolower($row['mt_priority'] ?? '') == 'low') badge-info
-                                @else badge-secondary
-                                @endif">
-                                {{ $row['mt_priority'] ?? '-' }}
-                            </span>
-                        @endif
+                    <td rowspan="{{ $row['asset_rowspan'] }}">
+                        <span class="badge 
+                            @if(strtolower($row['mt_priority'] ?? '') == 'high') badge-danger
+                            @elseif(strtolower($row['mt_priority'] ?? '') == 'medium') badge-warning
+                            @elseif(strtolower($row['mt_priority'] ?? '') == 'low') badge-info
+                            @else badge-secondary
+                            @endif">
+                            {{ strtoupper($row['mt_priority'] ?? '-') }}
+                        </span>
                     </td>
-                    <td style="{{ !empty($row['bagian_aset_has_border']) ? 'border-top: 1px solid #d0d0d0;' : '' }}">{{ $row['bagian_aset'] ?? '-' }}</td>
-                    <td style="{{ !empty($row['komponen_aset_has_border']) ? 'border-top: 1px solid #d0d0d0;' : '' }}">{{ $row['komponen_aset'] ?? '-' }}</td>
-                    <td style="{{ !empty($row['produk_has_border']) ? 'border-top: 1px solid #d0d0d0;' : '' }}">{{ $row['produk_yang_digunakan'] ?? '-' }}</td>
-                    <td style="{{ !empty($row['has_same_asset_below']) ? 'border-bottom: none;' : '' }}">
-                        @if(!empty($row['show_aksi']))
-                            <div style="display: flex; gap: 8px; align-items: center;">
-                                <a href="{{ route('assets.edit', $row['id']) }}" class="btn btn-sm" style="background-color: #0A9C5D; color: white; text-decoration: none; padding: 6px 12px; font-size: 12px; height: 32px; display: inline-flex; align-items: center; box-sizing: border-box;">Edit</a>
-                                <form action="{{ route('assets.destroy', $row['id']) }}" method="POST" style="display: inline; margin: 0;" onsubmit="return confirmDelete('Apakah Anda yakin ingin menghapus asset ini?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-danger" style="padding: 6px 12px; font-size: 12px; height: 32px; display: inline-flex; align-items: center; box-sizing: border-box;">Hapus</button>
-                                </form>
+                    <td rowspan="{{ $row['asset_rowspan'] }}">{{ $row['maintenance_terakhir'] ?? '-' }}</td>
+                    <td rowspan="{{ $row['asset_rowspan'] }}">{{ $row['maintenance_selanjutnya'] ?? '-' }}</td>
+                    @endif
+                    
+                    @if(!empty($row['show_bagian_aset']))
+                    <td rowspan="{{ $row['bagian_rowspan'] }}" style="border-right: 1px solid #d0d0d0; border-bottom: 1px solid #d0d0d0;">{{ $row['bagian_aset'] ?? '-' }}</td>
+                    @endif
+                    
+                    <td style="border-right: 1px solid #d0d0d0; border-bottom: 1px solid #d0d0d0;">{{ $row['komponen_aset'] ?? '-' }}</td>
+                    <td style="border-right: 1px solid #d0d0d0; border-bottom: 1px solid #d0d0d0;">{{ $row['produk_yang_digunakan'] ?? '-' }}</td>
+                    
+                    @if(!empty($row['show_asset_name']))
+                    <td rowspan="{{ $row['asset_rowspan'] }}" style="text-align: center; padding: 8px;">
+                        @if($row['foto'])
+                            <img src="{{ asset('storage/' . $row['foto']) }}" alt="Foto Aset" style="width: 220px; height: 130px; object-fit: cover; border-radius: 6px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="showImagePreview('{{ asset('storage/' . $row['foto']) }}')">
+                        @else
+                            <div style="width: 220px; height: 130px; background-color: #f0f0f0; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
+                                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
                             </div>
                         @endif
                     </td>
+                    <td rowspan="{{ $row['asset_rowspan'] }}">
+                        <div style="display: flex; gap: 8px; align-items: center; justify-content: center;">
+                            <button onclick="window.location.href='{{ route('assets.edit', $row['id']) }}'" style="background-color: #2196F3; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 8px rgba(33,150,243,0.3)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'" title="Edit">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                            </button>
+                            <form action="{{ route('assets.destroy', $row['id']) }}" method="POST" style="display: inline; margin: 0;" onsubmit="return confirmDelete('Apakah Anda yakin ingin menghapus asset ini?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" style="background-color: #F44336; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transition: all 0.2s;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 8px rgba(244,67,54,0.3)'" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'" title="Hapus">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                    @endif
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="9" style="text-align: center; padding: 40px; color: #666;">
+                    <td colspan="13" style="text-align: center; padding: 40px; color: #666;">
                         Tidak ada data ditemukan
                     </td>
                 </tr>
@@ -159,5 +192,38 @@
         </table>
     </div>
 </div>
+
+<!-- Image Preview Modal -->
+<div id="imagePreviewModal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center;">
+    <div style="position: relative; max-width: 90%; max-height: 90%;">
+        <img id="previewImage" src="" alt="Preview" style="max-width: 100%; max-height: 90vh; border-radius: 8px;">
+        <button onclick="closeImagePreview()" style="position: absolute; top: -40px; right: 0; background: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 24px; line-height: 1; color: #333;">×</button>
+    </div>
+</div>
+
+<script>
+function showImagePreview(imageUrl) {
+    document.getElementById('previewImage').src = imageUrl;
+    document.getElementById('imagePreviewModal').style.display = 'flex';
+}
+
+function closeImagePreview() {
+    document.getElementById('imagePreviewModal').style.display = 'none';
+}
+
+// Close modal when clicking outside image
+document.getElementById('imagePreviewModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImagePreview();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImagePreview();
+    }
+});
+</script>
 @endsection
 

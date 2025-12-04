@@ -49,7 +49,7 @@ class AssetController extends Controller
                         'bagian_aset' => '-',
                         'komponen_aset' => '-',
                         'produk_yang_digunakan' => '-',
-                        'gambar_aset' => $foto,
+                        'foto' => $foto,
                     ];
                 } else {
                     foreach ($bagianList as $bagian) {
@@ -69,7 +69,7 @@ class AssetController extends Controller
                                 'bagian_aset' => $namaBagian,
                                 'komponen_aset' => '-',
                                 'produk_yang_digunakan' => '-',
-                                'gambar_aset' => $foto,
+                                'foto' => $foto,
                             ];
                         } else {
                             foreach ($komponenList as $komponen) {
@@ -88,7 +88,7 @@ class AssetController extends Controller
                                     'bagian_aset' => $namaBagian,
                                     'komponen_aset' => $namaKomponen,
                                     'produk_yang_digunakan' => $spesifikasi,
-                                    'gambar_aset' => $foto,
+                                    'foto' => $foto,
                                 ];
                             }
                         }
@@ -131,49 +131,68 @@ class AssetController extends Controller
                 return $sortDirection === 'asc' ? $result : -$result;
             });
 
-            // Tandai baris yang memiliki nama aset yang sama untuk menghilangkan border
+            // Tandai baris yang memiliki nama aset dan bagian yang sama untuk menghilangkan border
             $processedData = [];
             $totalRows = count($flatData);
             
+            // Hitung rowspan untuk setiap grup aset dan bagian
+            $assetRowspans = [];
+            $bagianRowspans = [];
+            
+            for ($i = 0; $i < $totalRows; $i++) {
+                $row = $flatData[$i];
+                $assetKey = $row['nama_aset'] . '|' . $row['kode_assets'] . '|' . $row['id'];
+                $bagianKey = $assetKey . '|' . $row['bagian_aset'];
+                
+                if (!isset($assetRowspans[$assetKey])) {
+                    $assetRowspans[$assetKey] = 0;
+                }
+                $assetRowspans[$assetKey]++;
+                
+                if (!isset($bagianRowspans[$bagianKey])) {
+                    $bagianRowspans[$bagianKey] = 0;
+                }
+                $bagianRowspans[$bagianKey]++;
+            }
+            
             for ($i = 0; $i < $totalRows; $i++) {
                 $currentRow = $flatData[$i];
-                $currentKey = $currentRow['nama_aset'] . '|' . $currentRow['kode_assets'] . '|' . $currentRow['id'];
+                $currentAssetKey = $currentRow['nama_aset'] . '|' . $currentRow['kode_assets'] . '|' . $currentRow['id'];
+                $currentBagianKey = $currentAssetKey . '|' . $currentRow['bagian_aset'];
                 
                 // Cek baris sebelumnya
-                $prevKey = null;
-                $prevRow = null;
+                $prevAssetKey = null;
+                $prevBagianKey = null;
                 if ($i > 0) {
                     $prevRow = $flatData[$i - 1];
-                    $prevKey = $prevRow['nama_aset'] . '|' . $prevRow['kode_assets'] . '|' . $prevRow['id'];
+                    $prevAssetKey = $prevRow['nama_aset'] . '|' . $prevRow['kode_assets'] . '|' . $prevRow['id'];
+                    $prevBagianKey = $prevAssetKey . '|' . $prevRow['bagian_aset'];
                 }
                 
                 // Cek baris berikutnya
-                $nextKey = null;
-                $nextRow = null;
+                $nextAssetKey = null;
+                $nextBagianKey = null;
                 if ($i < $totalRows - 1) {
                     $nextRow = $flatData[$i + 1];
-                    $nextKey = $nextRow['nama_aset'] . '|' . $nextRow['kode_assets'] . '|' . $nextRow['id'];
+                    $nextAssetKey = $nextRow['nama_aset'] . '|' . $nextRow['kode_assets'] . '|' . $nextRow['id'];
+                    $nextBagianKey = $nextAssetKey . '|' . $nextRow['bagian_aset'];
                 }
                 
-                // Tentukan apakah ini baris pertama, tengah, atau terakhir dalam grup
-                $isFirstInGroup = ($prevKey !== $currentKey);
-                $isLastInGroup = ($nextKey !== $currentKey);
-                $hasSameAssetBelow = ($nextKey === $currentKey);
-                $hasSameAssetAbove = ($prevKey === $currentKey);
+                // Tentukan apakah ini baris pertama dalam grup aset
+                $isFirstAssetInGroup = ($prevAssetKey !== $currentAssetKey);
+                $hasSameAssetBelow = ($nextAssetKey === $currentAssetKey);
                 
-                // Cek apakah kolom berbeda dengan baris sebelumnya/berikutnya dalam grup yang sama
-                $currentRow['is_first_in_group'] = $isFirstInGroup;
-                $currentRow['is_last_in_group'] = $isLastInGroup;
+                // Tentukan apakah ini baris pertama dalam grup bagian
+                $isFirstBagianInGroup = ($prevBagianKey !== $currentBagianKey);
+                $hasSameBagianBelow = ($nextBagianKey === $currentBagianKey);
+                
                 $currentRow['has_same_asset_below'] = $hasSameAssetBelow;
-                $currentRow['show_asset_name'] = $isFirstInGroup; // Hanya tampilkan nama di baris pertama
-                $currentRow['show_aksi'] = $isFirstInGroup; // Hanya tampilkan aksi di baris pertama (karena aksi mempengaruhi aset secara keseluruhan)
-                
-                // Untuk kolom bagian aset, komponen aset, dan produk - selalu punya border untuk setiap baris baru
-                // (tidak peduli apakah nama aset sama atau tidak, dan tidak peduli apakah nilainya sama atau berbeda)
-                $currentRow['bagian_aset_has_border'] = ($i > 0); // Selalu punya border jika bukan baris pertama
-                $currentRow['komponen_aset_has_border'] = ($i > 0);
-                $currentRow['produk_has_border'] = ($i > 0);
-                // Kolom aksi digabung seperti kolom nama aset, jadi tidak perlu border
+                $currentRow['show_asset_name'] = $isFirstAssetInGroup; // Hanya tampilkan nama aset di baris pertama aset
+                $currentRow['show_aksi'] = $isFirstAssetInGroup; // Hanya tampilkan aksi di baris pertama aset
+                $currentRow['show_bagian_aset'] = $isFirstBagianInGroup; // Hanya tampilkan bagian aset di baris pertama bagian
+                $currentRow['has_same_bagian_below'] = $hasSameBagianBelow;
+                $currentRow['asset_rowspan'] = $isFirstAssetInGroup ? $assetRowspans[$currentAssetKey] : 0;
+                $currentRow['bagian_rowspan'] = $isFirstBagianInGroup ? $bagianRowspans[$currentBagianKey] : 0;
                 
                 $processedData[] = $currentRow;
             }

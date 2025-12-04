@@ -91,7 +91,8 @@ class KaryawanController extends Controller
             ->orderBy('nama_assets')
             ->get();
         
-        $jabatanList = ['Teknisi', 'Kasie Teknisi', 'Admin Staff'];
+        // Hanya 2 jabatan sesuai Dart: Teknisi dan KASIE Teknisi
+        $jabatanList = ['Teknisi', 'KASIE Teknisi'];
         
         return view('karyawan.create', compact('assets', 'jabatanList'));
     }
@@ -106,7 +107,7 @@ class KaryawanController extends Controller
             'email' => 'required|email|unique:karyawan,email',
             'password' => 'required|string|min:6',
             'phone' => 'nullable|string|max:20',
-            'jabatan' => 'required|string|in:Teknisi,Kasie Teknisi,Admin Staff',
+            'jabatan' => 'required|string|in:Teknisi,KASIE Teknisi',
             'department' => 'nullable|string|max:255',
             'assets' => 'nullable|array',
             'assets.*' => 'exists:assets,id',
@@ -142,8 +143,9 @@ class KaryawanController extends Controller
                 ]);
             }
 
-            // Assign assets jika ada
-            if ($request->has('assets') && is_array($request->assets)) {
+            // Assign assets jika ada (KASIE Teknisi tidak perlu assign assets)
+            // Untuk KASIE Teknisi, assets bisa kosong karena bisa lihat semua mesin
+            if ($request->jabatan !== 'KASIE Teknisi' && $request->has('assets') && is_array($request->assets)) {
                 foreach ($request->assets as $assetId) {
                     UserAsset::create([
                         'id' => Str::uuid()->toString(),
@@ -184,7 +186,8 @@ class KaryawanController extends Controller
             ->orderBy('nama_assets')
             ->get();
         
-        $jabatanList = ['Teknisi', 'Kasie Teknisi', 'Admin Staff'];
+        // Hanya 2 jabatan sesuai Dart: Teknisi dan KASIE Teknisi
+        $jabatanList = ['Teknisi', 'KASIE Teknisi'];
         $selectedAssets = $karyawan->assets->pluck('id')->toArray();
         
         return view('karyawan.edit', compact('karyawan', 'assets', 'jabatanList', 'selectedAssets'));
@@ -200,7 +203,7 @@ class KaryawanController extends Controller
             'email' => 'required|email|unique:karyawan,email,' . $id,
             'password' => 'nullable|string|min:6',
             'phone' => 'nullable|string|max:20',
-            'jabatan' => 'required|string|in:Teknisi,Kasie Teknisi,Admin Staff',
+            'jabatan' => 'required|string|in:Teknisi,KASIE Teknisi',
             'department' => 'nullable|string|max:255',
             'assets' => 'nullable|array',
             'assets.*' => 'exists:assets,id',
@@ -253,9 +256,10 @@ class KaryawanController extends Controller
             }
 
             // Update assets (replace semua)
+            // KASIE Teknisi tidak perlu assign assets karena bisa lihat semua mesin
             UserAsset::where('karyawan_id', $id)->delete();
             
-            if ($request->has('assets') && is_array($request->assets)) {
+            if ($request->jabatan !== 'KASIE Teknisi' && $request->has('assets') && is_array($request->assets)) {
                 foreach ($request->assets as $assetId) {
                     UserAsset::create([
                         'id' => Str::uuid()->toString(),

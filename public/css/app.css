@@ -267,6 +267,11 @@ body {
     gap: 8px;
     width: 100%;
     letter-spacing: 0.5px;
+    text-decoration: none;
+}
+
+a.btn {
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -295,6 +300,20 @@ body {
 
 .btn-secondary:hover {
     background-color: #5a6268;
+}
+
+.btn-outline {
+    background-color: white;
+    color: #333;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.btn-outline:hover {
+    background-color: #f8f9fa;
+    border-color: #bbb;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
 .btn-danger {
