@@ -33,5 +33,6 @@ Route::middleware(['auth'])->group(function () {
     
     // Check Sheet Template
     Route::get('check-sheet-template/komponen/{assetId}', [CheckSheetTemplateController::class, 'getKomponenByAsset'])->name('check-sheet-template.get-komponen');
+    Route::get('check-sheet-template/{id}/kalender', [CheckSheetTemplateController::class, 'kalender'])->name('check-sheet-template.kalender');
     Route::resource('check-sheet-template', CheckSheetTemplateController::class);
 });

@@ -117,6 +117,18 @@
                         </td>
                         <td>
                             <div style="display: flex; gap: 8px; justify-content: center;">
+                                <button onclick="window.location.href='{{ route('check-sheet-template.kalender', $row['id']) }}'" 
+                                        style="background-color: #0A9C5D; color: white; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; transition: all 0.2s;" 
+                                        onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 2px 8px rgba(10,156,93,0.3)'" 
+                                        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'" 
+                                        title="Jadwal Pengecekan">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                </button>
                                 <a href="{{ route('check-sheet-template.edit', $row['id']) }}" 
                                    class="btn-icon btn-icon-edit" 
                                    title="Edit">

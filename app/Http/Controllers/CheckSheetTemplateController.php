@@ -267,4 +267,52 @@ class CheckSheetTemplateController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Show calendar view for check sheet schedule
+     */
+    public function kalender($id, Request $request)
+    {
+        try {
+            $template = CheckSheetTemplate::with(['komponenAsset.asset', 'komponenAsset.bagianMesin'])
+                ->findOrFail($id);
+            
+            $month = $request->get('month', date('m'));
+            $year = $request->get('year', date('Y'));
+            
+            // Get asset and component info
+            $assetName = $template->komponenAsset && $template->komponenAsset->asset 
+                ? $template->komponenAsset->asset->nama_assets 
+                : '-';
+            $bagianName = $template->komponenAsset && $template->komponenAsset->bagianMesin
+                ? $template->komponenAsset->bagianMesin->nama_bagian
+                : '-';
+            $komponenName = $template->komponenAsset 
+                ? $template->komponenAsset->nama_bagian 
+                : '-';
+            
+            // Parse tanggal_status JSON (contains schedule data)
+            // Format: {"1": "M", "5": "M V", "10": "M", "15": "M V"}
+            // M = Rencana (Plan), V = Aktual (Actual)
+            $tanggalStatus = [];
+            if ($template->tanggal_status) {
+                $tanggalStatus = is_string($template->tanggal_status) 
+                    ? json_decode($template->tanggal_status, true) 
+                    : $template->tanggal_status;
+            }
+            
+            return view('check-sheet-template.kalender', compact(
+                'template',
+                'assetName',
+                'bagianName',
+                'komponenName',
+                'tanggalStatus',
+                'month',
+                'year'
+            ));
+        } catch (\Exception $e) {
+            return redirect()->route('check-sheet-template.index')
+                ->with('error', 'Template tidak ditemukan: ' . $e->getMessage());
+        }
+    }
 }
